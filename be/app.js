@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-// const connectDB = require('./config/database');
+const swaggerSetup = require('./swagger');
 const cookieParser = require('cookie-parser');
 require('dotenv').config();
 
@@ -20,5 +20,8 @@ app.use(cookieParser());
 // connectDB();
 
 app.use('/auth', authRoutes);
+
+// Swagger UI
+swaggerSetup(app);
 
 module.exports = app;

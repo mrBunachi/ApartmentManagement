@@ -69,6 +69,7 @@ const login = async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 }
+
 function refresh(req, res) {
     const refreshToken = req.cookies.refreshToken;
     if (!refreshToken) return res.status(401).json({ message: 'No refresh token provided' });
