@@ -1,16 +1,18 @@
-require('dotenv').config();
-const mongoose = require('mongoose');
+// const { PrismaClient } = require("@prisma/client");
 
-const clientOptions = { family: 4, serverApi: { version: '1', strict: true, deprecationErrors: true } };
-async function connectDB() {
-    try {
-        const conn = await mongoose.connect(process.env.MONGO_URI, clientOptions);
-        console.log(`MongoDB Connected: ${conn.connection.host}`);
-    }
-    catch (error) {
-        console.error(`Error: ${error.message}`);
-        process.exit(1);
-    }
+// const prisma = new PrismaClient();
+
+// (async () => {
+//   try {
+//     console.log(await prisma.widget.create({ data: { } }));
+//   } catch (err) {
+//     console.error("error executing query:", err);
+//   } finally {
+//     prisma.$disconnect();
+//   }
+// })();
+const { PrismaClient }=  require("@prisma/client") ;
+const prisma = new PrismaClient();
+module.exports = {
+    prisma
 }
-
-module.exports = connectDB;

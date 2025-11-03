@@ -6,8 +6,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model DANHSACHTHUPHI {
@@ -57,10 +58,10 @@ model DOTTHUPHI {
   MOTA           String?
   DANHSACHTHUPHI DANHSACHTHUPHI[]
   DONGGOP        DONGGOP[]
-  FEETHUHO       FEETHUHO[]
+  PHITHUHO       PHITHUHO[]
 }
 
-model FEETHUHO {
+model PHITHUHO {
   MADOTTHU          Int
   MAHOKHAU          Int
   TONGDIEN          Decimal?  @db.Decimal(18, 2)
@@ -90,27 +91,27 @@ model HOKHAU {
   ACTIVATE                           Boolean          @default(true)
   DANHSACHTHUPHI                     DANHSACHTHUPHI[]
   DONGGOP                            DONGGOP[]
-  FEETHUHO                           FEETHUHO[]
+  PHITHUHO                           PHITHUHO[]
   NHANKHAU_HOKHAU_IDCHUHOToNHANKHAU  NHANKHAU         @relation("HOKHAU_IDCHUHOToNHANKHAU", fields: [IDCHUHO], references: [MANHANKHAU])
   PHICODINH                          PHICODINH        @relation(fields: [LOAICANHO], references: [LOAICANHO])
   NHANKHAU_NHANKHAU_MAHOKHAUToHOKHAU NHANKHAU[]       @relation("NHANKHAU_MAHOKHAUToHOKHAU")
 }
 
 model LOAIPHI {
-  MALOAIPHI                Int       @id @default(autoincrement())
-  TEN                      String
-  BATBUOC                  Boolean   @default(true)
-  SOTIENTRENNGUOITRENTHANG Decimal?  @db.Decimal(18, 2)
-  NGAYTAO                  DateTime? @default(now())
-  MOTA                     String?
-  DONGGOP                  DONGGOP[]
+  MALOAIPHI Int       @id @default(autoincrement())
+  TEN       String
+  NGAYTAO   DateTime? @default(now())
+  MOTA      String?
+  DONGGOP   DONGGOP[]
 }
 
 model NGUOIQUANLY {
-  TENDANGNHAP String  @id @db.VarChar(50)
+  id          Int     @id @default(autoincrement())
+  TENDANGNHAP String  @unique @db.VarChar(50)
   HOTEN       String
   MATKHAU     String  @db.VarChar(255)
-  SODIENTHOAI String  @db.VarChar(15)
+  SODIENTHOAI String  @unique @db.VarChar(10)
+  EMAIL       String? @unique @db.VarChar(50)
   VAITRO      String? @db.VarChar(50)
 }
 
