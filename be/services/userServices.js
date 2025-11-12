@@ -58,7 +58,7 @@ const getUserById = async (id) => {
     }
 }
 
-const updateUser = async(id, updataData) => {
+const updateUser = async(id, updateData) => {
     try{
         where = {
             TENDANGNHAP:{
@@ -67,7 +67,7 @@ const updateUser = async(id, updataData) => {
         }
         const updateUser =await prisma.nGUOIQUANLY.update({
             where,
-            data:updataData
+            data:updateData
         })
         return {updateUser};
     }
