@@ -6,6 +6,7 @@ require('dotenv').config();
 
 
 const authRoutes = require("./routes/authRoute")
+const userRoutes = require("./routes/userRoute")
 const app = express();
 
 app.use(cors({
@@ -20,7 +21,7 @@ app.use(cookieParser());
 // connectDB();
 
 app.use('/auth', authRoutes);
-
+app.use('/user', userRoutes)
 // Swagger UI
 swaggerSetup(app);
 

@@ -12,9 +12,9 @@ const createResident = async(data) => {
     }
 }
 
-const getResById = async (id , active=true) => {
+const getResById = async (id , active=null) => {
     try{
-        where ={
+        const where ={
             MANHANKHAU:{
                 equals:id,
             },
@@ -32,7 +32,7 @@ const getResById = async (id , active=true) => {
 }
 const deleteResident = async(id) => {
     try{
-        where = {
+        const where = {
             MANHANKHAU:{
                 equals:id
             }
@@ -51,7 +51,7 @@ const deleteResident = async(id) => {
 }
 const updateResident = async (id,data) => {
     try{
-        where={
+        const where={
             MANHANKHAU:{
                 equals:id
             }
@@ -64,7 +64,7 @@ const updateResident = async (id,data) => {
     }
 }
 
-const getResidents = async (data, page=0, limit = 10) => {
+const getResidents = async (data, page=1, limit = 10) => {
 
     const residents = prisma.nHANKHAU.findMany({
         skip: (page - 1) * limit,

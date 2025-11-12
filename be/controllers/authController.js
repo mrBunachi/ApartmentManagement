@@ -55,13 +55,13 @@ const login = async (req, res) => {
         const refreshToken = generateRefreshToken(user.id);
         res.cookie('accessToken', accessToken, {
             httpOnly: true,
-            secure: false,
-            sameSite: "Lax"
+            secure: true,
+            sameSite: "None"
         })
         res.cookie('refreshToken', refreshToken, {
             httpOnly: true,
-            secure: false,
-            sameSite: "Lax",
+            secure: true,
+            sameSite: "None",
             maxAge: 6 * 60 * 60 * 1000
         })
         res.status(200).json({ message: 'Login successful' });
