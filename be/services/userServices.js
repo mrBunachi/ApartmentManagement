@@ -11,14 +11,15 @@ const createUser= async (data) => {
         throw {error};
     }
 }
-const getUsers = async (name = null, page = 1, limit = 20) => {
+const getUsers = async (name = null,active=null, page = 1, limit = 20) => {
   try {
     const where = name
       ? {
           HOTEN: {
             contains: name,
             mode: "insensitive"
-          }
+          },
+          ACTIVATE:active
         }
       : {};
 
@@ -84,8 +85,8 @@ const deleteUser = async (id) => {
                 equals:id
             }
         }
-        const deleteUser =await prisma.nGUOIQUANLY.delete({
-            where
+        const deleteUser =await prisma.nGUOIQUANLY.update({
+            where, data:{ACTIVATE:true}
         })
         return {deleteUser};
 

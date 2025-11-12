@@ -116,6 +116,7 @@ model NGUOIQUANLY {
   SODIENTHOAI String  @unique @db.VarChar(10)
   EMAIL       String? @unique @db.VarChar(50)
   VAITRO      String? @db.VarChar(50)
+  ACTIVATE    Boolean @default(true)
 
   DOTTHUPHIs DOTTHUPHI[] // Một quản lý có thể tạo nhiều đợt thu
 }
