@@ -7,6 +7,7 @@ require('dotenv').config();
 
 const authRoutes = require("./routes/authRoute")
 const userRoutes = require("./routes/userRoute")
+const residentRoute = require("./routes/residentRoute")
 const app = express();
 
 app.use(cors({
@@ -21,7 +22,8 @@ app.use(cookieParser());
 // connectDB();
 
 app.use('/auth', authRoutes);
-app.use('/user', userRoutes)
+app.use('/user', userRoutes);
+app.use("/resi", residentRoute);
 // Swagger UI
 swaggerSetup(app);
 
