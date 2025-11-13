@@ -1,0 +1,179 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model DANHSACHTHUPHI {
+  MADOTTHU     Int
+  MAHOKHAU     Int
+  TENDONGTIEN  String?
+  TENLOAIPHI   String?
+  TIENNHA      Decimal?  @db.Decimal(18, 2)
+  TIENDICHVU   Decimal?  @db.Decimal(18, 2)
+  TIENXEMAY    Decimal?  @db.Decimal(18, 2)
+  TIENOTO      Decimal?  @db.Decimal(18, 2)
+  TENDIEN      String?
+  SODIEN       Decimal?  @db.Decimal(18, 2)
+  TENNUOC      String?
+  SONUOC       Decimal?  @db.Decimal(18, 2)
+  TIENINTERNET Decimal?  @db.Decimal(18, 2)
+  TRANGTHAI    String?   @db.VarChar(50) // Giữ lại VarChar nếu muốn giới hạn
+  SOTIENDADONG Decimal?  @db.Decimal(18, 2)
+  NGAYDONG     DateTime?
+
+  DOTTHUPHI DOTTHUPHI @relation(fields: [MADOTTHU], references: [MADOTTHU])
+  HOKHAU    HOKHAU    @relation(fields: [MAHOKHAU], references: [MAHOKHAU])
+
+  @@id([MADOTTHU, MAHOKHAU])
+}
+
+model DONGGOP {
+  MADONGGOP    Int       @id @default(autoincrement())
+  MADOTTHU     Int?
+  MAHOKHAU     Int?
+  MALOAIPHI    Int?
+  SOTIENDADONG Decimal?  @db.Decimal(18, 2)
+  TRANGTHAI    String?   @db.VarChar(50)
+  NGAYDONG     DateTime?
+  TENCHUHO     String?
+
+  DOTTHUPHI DOTTHUPHI? @relation(fields: [MADOTTHU], references: [MADOTTHU])
+  HOKHAU    HOKHAU?    @relation(fields: [MAHOKHAU], references: [MAHOKHAU])
+  LOAIPHI   LOAIPHI?   @relation(fields: [MALOAIPHI], references: [MALOAIPHI])
+}
+
+model DOTTHUPHI {
+  MADOTTHU       Int              @id @default(autoincrement())
+  TEN            String
+  BATBUOC        Boolean          @default(true)
+  NGAYTAO        DateTime?        @default(now())
+  MOTA           String?
+  DANHSACHTHUPHI DANHSACHTHUPHI[]
+  DONGGOP        DONGGOP[]
+  PHITHUHO       PHITHUHO[]
+
+  NGUOIQUANLYId Int
+  NGUOIQUANLY   NGUOIQUANLY @relation(fields: [NGUOIQUANLYId], references: [id])
+}
+
+model PHITHUHO {
+  MADOTTHU          Int
+  MAHOKHAU          Int
+  TONGDIEN          Decimal?  @db.Decimal(18, 2)
+  TONGTIENDIEN      Decimal?  @db.Decimal(18, 2)
+  TONGNUOC          Decimal?  @db.Decimal(18, 2)
+  TONGTIENNUOC      Decimal?  @db.Decimal(18, 2)
+  THANHTIENNUOC     Decimal?  @db.Decimal(18, 2)
+  THANHTIENINTERNET Decimal?  @db.Decimal(18, 2)
+  DOTTHUPHI         DOTTHUPHI @relation(fields: [MADOTTHU], references: [MADOTTHU])
+  HOKHAU            HOKHAU    @relation(fields: [MAHOKHAU], references: [MAHOKHAU])
+
+  @@id([MADOTTHU, MAHOKHAU])
+}
+
+model HOKHAU {
+  MAHOKHAU                           Int              @id @default(autoincrement())
+  IDCHUHO                            Int
+  DIACHI                             String?
+  NGAYTAO                            DateTime?        @default(now())
+  GHICHU                             String?
+  TENCHUHO                           String
+  XEMAY                              Int?             @default(0)
+  OTO                                Int?             @default(0)
+  MAPHONG                            String           @db.VarChar(20)
+  TRANGTHAI                          Boolean          @default(true)
+  LOAICANHO                          String           @db.VarChar(50)
+  ACTIVATE                           Boolean          @default(true)
+  DANHSACHTHUPHI                     DANHSACHTHUPHI[]
+  DONGGOP                            DONGGOP[]
+  PHITHUHO                           PHITHUHO[]
+  NHANKHAU_HOKHAU_IDCHUHOToNHANKHAU  NHANKHAU         @relation("HOKHAU_IDCHUHOToNHANKHAU", fields: [IDCHUHO], references: [MANHANKHAU])
+  PHICODINH                          PHICODINH        @relation(fields: [LOAICANHO], references: [LOAICANHO])
+  NHANKHAU_NHANKHAU_MAHOKHAUToHOKHAU NHANKHAU[]       @relation("NHANKHAU_MAHOKHAUToHOKHAU")
+}
+
+model LOAIPHI {
+  MALOAIPHI Int       @id @default(autoincrement())
+  TEN       String
+  NGAYTAO   DateTime? @default(now())
+  MOTA      String?
+  DONGGOP   DONGGOP[]
+}
+
+model NGUOIQUANLY {
+  id          Int     @id @default(autoincrement())
+  TENDANGNHAP String  @unique @db.VarChar(50)
+  HOTEN       String
+  MATKHAU     String  @db.VarChar(255)
+  SODIENTHOAI String  @unique @db.VarChar(10)
+  EMAIL       String? @unique @db.VarChar(50)
+  VAITRO      String? @db.VarChar(50)
+  ACTIVATE    Boolean @default(true)
+
+  DOTTHUPHIs DOTTHUPHI[] // Một quản lý có thể tạo nhiều đợt thu
+}
+
+model NHANKHAU {
+  MANHANKHAU                       Int       @id @default(autoincrement())
+  MAHOKHAU                         Int?
+  HOTEN                            String
+  SOCANCUOC                        String?   @unique @db.VarChar(20)
+  NGAYSINH                         DateTime? @db.Date
+  GIOITINH                         String?   @db.VarChar(10)
+  NOISINH                          String?
+  NGUYENQUAN                       String?
+  DANTOC                           String?   @db.VarChar(30)
+  TONGIAO                          String?   @db.VarChar(30)
+  QUOCTICH                         String?   @db.VarChar(50)
+  NOITHUONGTRU                     String?
+  NGHENGHIEP                       String?
+  NGAYTAO                          DateTime? @default(now())
+  QUANHEVOICHUHO                   String?   @db.VarChar(50)
+  GHICHU                           String?
+  ACTIVATE                         Boolean   @default(true)
+  HOKHAU_HOKHAU_IDCHUHOToNHANKHAU  HOKHAU[]  @relation("HOKHAU_IDCHUHOToNHANKHAU")
+  HOKHAU_NHANKHAU_MAHOKHAUToHOKHAU HOKHAU?   @relation("NHANKHAU_MAHOKHAUToHOKHAU", fields: [MAHOKHAU], references: [MAHOKHAU])
+  TAMTRU                           TAMTRU[]
+  TAMVANG                          TAMVANG[]
+}
+
+model PHICODINH {
+  LOAICANHO    String   @id @db.VarChar(50)
+  GIATIENCANHO Decimal? @db.Decimal(18, 2)
+  PHIQLCHUNGCU Decimal? @db.Decimal(18, 2)
+  PHIKEDAP     Decimal? @db.Decimal(18, 2)
+  PHIXEOTO     Decimal? @db.Decimal(18, 2)
+  HOKHAU       HOKHAU[]
+}
+
+// Bảng `sysdiagrams` đã bị xóa vì đây là bảng hệ thống của SQL Server
+
+model TAMTRU {
+  MADANGKYTAMTRU         Int       @id @default(autoincrement()) // Đặt làm @id
+  MANHANKHAU             Int
+  SODIENTHOAINGUOIDANGKY String?   @db.VarChar(15)
+  TUNGAY                 DateTime? @db.Date
+  DENNGAY                DateTime? @db.Date
+  LYDO                   String?
+  NHANKHAU               NHANKHAU  @relation(fields: [MANHANKHAU], references: [MANHANKHAU])
+  // Xóa @@id phức hợp
+}
+
+model TAMVANG {
+  MADANGKYTAMVANG Int       @id @default(autoincrement()) // Đặt làm @id
+  MANHANKHAU      Int
+  NOTAMTRU        String?
+  TUNGAY          DateTime? @db.Date
+  DENNGAY         DateTime? @db.Date
+  LYDO            String?
+  NHANKHAU        NHANKHAU  @relation(fields: [MANHANKHAU], references: [MANHANKHAU])
+  // Xóa @@id phức hợp
+}

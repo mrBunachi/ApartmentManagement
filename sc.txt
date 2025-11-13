@@ -1,0 +1,2 @@
+sql_user=hung20225131_gmail_c
+db_pass=457OTZGoWBoWKmOXc8wuHg
