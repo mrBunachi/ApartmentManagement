@@ -20,6 +20,7 @@ app.use(cookieParser());
 // connectDB();
 
 app.use('/auth', authRoutes);
+app.use('/billing', require('./routes/billingRoute'));
 
 // Swagger UI
 swaggerSetup(app);
