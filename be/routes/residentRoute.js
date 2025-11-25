@@ -9,13 +9,13 @@ router.use(verifyUser);
 // === ĐỊNH NGHĨA CÁC TUYẾN ĐƯỜNG (ROUTES) ===
 
 
-router.post("/create", residentController.createResidentController);
+router.post("/", residentController.createResidentController);
 
 
-router.put("/update/:id", residentController.updateResidentController);
+router.put("/:id", residentController.updateResidentController);
 
 
-router.delete("/delete/:id", residentController.deleteResidentController);
+router.delete("/:id", residentController.deleteResidentController);
 
 
 router.get("/", residentController.getResidentController);

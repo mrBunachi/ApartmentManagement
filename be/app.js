@@ -22,8 +22,8 @@ app.use(cookieParser());
 // connectDB();
 
 app.use('/auth', authRoutes);
-app.use('/user', userRoutes);
-app.use("/resi", residentRoute);
+app.use('/nguoi-quan-ly', userRoutes);
+app.use("/nhan-khau", residentRoute);
 // Swagger UI
 swaggerSetup(app);
 
