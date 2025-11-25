@@ -64,14 +64,24 @@ const createResident = async(data) => {
     }
 }
 
-const getResById = async (id , active=null) => {
+const getResById = async (id , active=null, include = false) => {
     try{
         const where ={
             MANHANKHAU:{
                 equals:parseInt(id),
             },
         };
-        const resident =await prisma.nHANKHAU.findFirst({where});
+        const resident =await prisma.nHANKHAU.findFirst({
+            where,
+            include:include ? {
+                    HOKHAU:{
+                        select:{
+                            MAHOKHAU:true,
+                            MAPHONG:true,
+                        }
+                    }
+                } : undefined
+        });
         return {resident}
 
     }
@@ -122,17 +132,26 @@ const updateResident = async (id,data) => {
     }
 }
 
-const getResidents = async (data, page=1, limit = 10) => {
+const getResidents = async (data, page=1, limit = 10,include = false) => {
     try{
         const residents =  await prisma.nHANKHAU.findMany({
             skip: (page - 1) * limit,
             take: limit,
-            where:resDataParse(data)
+            where:resDataParse(data),
+            include:include ? {
+                    HOKHAU:{
+                        select:{
+                            MAHOKHAU:true,
+                            MAPHONG:true,
+                        }
+                    }
+                } : undefined
         })
         const count = await prisma.nHANKHAU.count({
                 skip: (page - 1) * limit,
                 take: limit,
-                where:resDataParse(data)
+                where:resDataParse(data),
+                
             })
         
 

@@ -33,12 +33,12 @@ const createResidentController = async (req, res) => {
 const getResidentController = async (req, res) => {
   try {
     const { id } = req.params; // Lấy id từ params
-
+    const include = req.query.include !== undefined
     let residents; // Biến này sẽ chứa kết quả (theo đúng style của userController)
 
     if (id) {
       // Lấy 1 nhân khẩu theo id
-      const result = (await residentServices.getResById(id)).resident;
+      const result = (await residentServices.getResById(id,null,include)).resident;
 
       if (!result) {
         return res.status(404).json({ message: "Không tìm thấy nhân khẩu" });
@@ -53,8 +53,9 @@ const getResidentController = async (req, res) => {
       // Xóa page/limit khỏi filter để truyền data sạch vào service
       delete filters.page;
       delete filters.limit;
+      delete filters.include;
 
-      const result = await residentServices.getResidents(filters, page, limit);
+      const result = await residentServices.getResidents(filters, page, limit,include);
 
       if (!result || !result.residents || result.count=== 0) {
         return res.status(404).json({ message: "Không tìm thấy nhân khẩu nào" });
