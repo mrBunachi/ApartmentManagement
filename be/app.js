@@ -7,7 +7,8 @@ require('dotenv').config();
 
 const authRoutes = require("./routes/authRoute")
 const userRoutes = require("./routes/userRoute")
-const residentRoute = require("./routes/residentRoute")
+const residentRoutes = require("./routes/residentRoute")
+const apartmentRoutes = require("./routes/apartmentRoute")
 const app = express();
 
 app.use(cors({
@@ -23,7 +24,8 @@ app.use(cookieParser());
 
 app.use('/auth', authRoutes);
 app.use('/nguoi-quan-ly', userRoutes);
-app.use("/nhan-khau", residentRoute);
+app.use("/nhan-khau", residentRoutes);
+app.use("/ho-khau", apartmentRoutes);
 // Swagger UI
 swaggerSetup(app);
 
