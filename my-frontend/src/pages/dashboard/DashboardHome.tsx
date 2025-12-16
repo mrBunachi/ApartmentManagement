@@ -1,3 +1,3 @@
 export default function DashboardHome() {
-    return <h2>Chào mừng đến hệ thống BlueMoon</h2>;
+  return <h1>Chào mừng đến với hệ thống quản lý!</h1>;
 }
