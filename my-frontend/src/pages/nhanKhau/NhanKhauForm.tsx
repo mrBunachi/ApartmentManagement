@@ -4,11 +4,11 @@ import { nhanKhauService } from '../../api/nhanKhau.service';
 
 export default function NhanKhauForm() {
   const navigate = useNavigate();
-  const { id } = useParams(); // Lấy ID từ URL nếu đang sửa
+  const { id } = useParams();
 
   // Chuẩn theo bảng NHANKHAU trong cnpm.sql
   const [formData, setFormData] = useState({
-    maHoKhau: '', // Nhập ID hộ khẩu (tạm thời nhập số, sau này làm dropdown chọn căn hộ)
+    maHoKhau: '',
     hoTen: '',
     soCanCuoc: '',
     ngaySinh: '',
@@ -20,11 +20,10 @@ export default function NhanKhauForm() {
     quocTich: 'Việt Nam',
     noiThuongTru: '',
     ngheNghiep: '',
-    quanHeVoiChuHo: '', // Ví dụ: Chủ hộ, Vợ, Con...
+    quanHeVoiChuHo: '',
     ghiChu: ''
   });
 
-  // Nếu có ID (đang sửa) thì load dữ liệu cũ
   useEffect(() => {
     if (id) {
       loadDetail(id);
@@ -34,7 +33,6 @@ export default function NhanKhauForm() {
   const loadDetail = async (id: string) => {
     try {
       const res: any = await nhanKhauService.getById(id);
-      // Map dữ liệu từ backend vào form (Lưu ý: Backend trả về field viết hoa hay thường thì sửa lại cho khớp nhé)
       setFormData(res.data || res); 
     } catch (err) { console.error(err); }
   };
@@ -46,10 +44,9 @@ export default function NhanKhauForm() {
   const handleSubmit = async (e: any) => {
     e.preventDefault();
     try {
-      // Convert maHoKhau sang số nếu cần thiết
       const payload = { 
         ...formData, 
-        maHoKhau: formData.maHoKhau ? parseInt(formData.maHoKhau) : null 
+        maHoKhau: formData.maHoKhau ? parseInt(formData.maHoKhau.toString()) : null 
       };
 
       if (id) await nhanKhauService.update(id, payload);
@@ -63,63 +60,120 @@ export default function NhanKhauForm() {
     }
   };
 
+  // Style chung cho input để đỡ lặp lại code
+  const inputStyle = { padding: 8, border: '1px solid #ccc', borderRadius: 4 };
+
   return (
     <div style={{ padding: 20 }}>
       <h3>{id ? 'Cập Nhật' : 'Thêm Mới'} Cư Dân (Chung Cư)</h3>
       
-      <form onSubmit={handleSubmit} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+      <form onSubmit={handleSubmit} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 30, maxWidth: 1000 }}>
         
         {/* Cột 1 */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <label>Mã Hộ Khẩu (ID căn hộ):</label>
-          <input name="maHoKhau" type="number" value={formData.maHoKhau} onChange={handleChange} placeholder="Nhập ID hộ..." />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 15 }}>
+          <div style={{display: 'flex', flexDirection: 'column'}}>
+            <label style={{fontWeight: 'bold'}}>Mã Hộ Khẩu (ID căn hộ):</label>
+            <input name="maHoKhau" type="number" value={formData.maHoKhau} onChange={handleChange} placeholder="Nhập ID hộ..." style={inputStyle} />
+          </div>
 
-          <label>Họ Tên (*):</label>
-          <input name="hoTen" value={formData.hoTen} onChange={handleChange} required />
+          <div style={{display: 'flex', flexDirection: 'column'}}>
+            <label style={{fontWeight: 'bold'}}>Họ Tên (*):</label>
+            <input name="hoTen" value={formData.hoTen} onChange={handleChange} required style={inputStyle} />
+          </div>
 
-          <label>Số CCCD/CMND (*):</label>
-          <input name="soCanCuoc" value={formData.soCanCuoc} onChange={handleChange} required />
+          <div style={{display: 'flex', flexDirection: 'column'}}>
+            <label style={{fontWeight: 'bold'}}>Số CCCD/CMND (*):</label>
+            <input name="soCanCuoc" value={formData.soCanCuoc} onChange={handleChange} required style={inputStyle} />
+          </div>
 
-          <label>Ngày Sinh (*):</label>
-          <input type="date" name="ngaySinh" value={formData.ngaySinh} onChange={handleChange} required />
+          <div style={{display: 'flex', flexDirection: 'column'}}>
+            <label style={{fontWeight: 'bold'}}>Ngày Sinh (*):</label>
+            <input type="date" name="ngaySinh" value={formData.ngaySinh} onChange={handleChange} required style={inputStyle} />
+          </div>
 
-          <label>Giới Tính:</label>
-          <select name="gioiTinh" value={formData.gioiTinh} onChange={handleChange}>
-            <option value="Nam">Nam</option>
-            <option value="Nữ">Nữ</option>
-          </select>
+          <div style={{display: 'flex', flexDirection: 'column'}}>
+            <label style={{fontWeight: 'bold'}}>Giới Tính:</label>
+            <select name="gioiTinh" value={formData.gioiTinh} onChange={handleChange} style={inputStyle}>
+              <option value="Nam">Nam</option>
+              <option value="Nữ">Nữ</option>
+            </select>
+          </div>
 
-          <label>Quan hệ với chủ hộ:</label>
-          <input name="quanHeVoiChuHo" value={formData.quanHeVoiChuHo} onChange={handleChange} placeholder="VD: Chủ hộ, Con..." />
+          <div style={{display: 'flex', flexDirection: 'column'}}>
+            <label style={{fontWeight: 'bold'}}>Quan hệ với chủ hộ:</label>
+            <input name="quanHeVoiChuHo" value={formData.quanHeVoiChuHo} onChange={handleChange} placeholder="VD: Chủ hộ, Con..." style={inputStyle} />
+          </div>
         </div>
 
         {/* Cột 2 */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <label>Nơi thường trú:</label>
-          <input name="noiThuongTru" value={formData.noiThuongTru} onChange={handleChange} />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 15 }}>
+          <div style={{display: 'flex', flexDirection: 'column'}}>
+            <label style={{fontWeight: 'bold'}}>Nơi thường trú:</label>
+            <input name="noiThuongTru" value={formData.noiThuongTru} onChange={handleChange} style={inputStyle} />
+          </div>
 
-          <label>Quê quán:</label>
-          <input name="nguyenQuan" value={formData.nguyenQuan} onChange={handleChange} />
+          <div style={{display: 'flex', flexDirection: 'column'}}>
+            <label style={{fontWeight: 'bold'}}>Quê quán:</label>
+            <input name="nguyenQuan" value={formData.nguyenQuan} onChange={handleChange} style={inputStyle} />
+          </div>
           
-          <label>Dân tộc:</label>
-          <input name="danToc" value={formData.danToc} onChange={handleChange} />
+          <div style={{display: 'flex', flexDirection: 'column'}}>
+            <label style={{fontWeight: 'bold'}}>Dân tộc:</label>
+            <input name="danToc" value={formData.danToc} onChange={handleChange} style={inputStyle} />
+          </div>
 
-          <label>Tôn giáo:</label>
-          <input name="tonGiao" value={formData.tonGiao} onChange={handleChange} />
+          <div style={{display: 'flex', flexDirection: 'column'}}>
+            <label style={{fontWeight: 'bold'}}>Tôn giáo:</label>
+            <input name="tonGiao" value={formData.tonGiao} onChange={handleChange} style={inputStyle} />
+          </div>
           
-          <label>Quốc tịch:</label>
-          <input name="quocTich" value={formData.quocTich} onChange={handleChange} />
+          <div style={{display: 'flex', flexDirection: 'column'}}>
+            <label style={{fontWeight: 'bold'}}>Quốc tịch:</label>
+            <input name="quocTich" value={formData.quocTich} onChange={handleChange} style={inputStyle} />
+          </div>
 
-          <label>Nghề nghiệp:</label>
-          <input name="ngheNghiep" value={formData.ngheNghiep} onChange={handleChange} />
+          <div style={{display: 'flex', flexDirection: 'column'}}>
+            <label style={{fontWeight: 'bold'}}>Nghề nghiệp:</label>
+            <input name="ngheNghiep" value={formData.ngheNghiep} onChange={handleChange} style={inputStyle} />
+          </div>
 
-          <label>Ghi chú:</label>
-          <input name="ghiChu" value={formData.ghiChu} onChange={handleChange} />
+          <div style={{display: 'flex', flexDirection: 'column'}}>
+            <label style={{fontWeight: 'bold'}}>Ghi chú:</label>
+            <input name="ghiChu" value={formData.ghiChu} onChange={handleChange} style={inputStyle} />
+          </div>
         </div>
 
-        <div style={{ gridColumn: 'span 2', marginTop: 20 }}>
-           <button type="submit" style={{ background: 'blue', color: 'white', padding: 10, marginRight: 10 }}>Lưu Dữ Liệu</button>
-           <button type="button" onClick={() => navigate('/nhan-khau')}>Hủy</button>
+        {/* Khu vực nút bấm */}
+        <div style={{ gridColumn: 'span 2', marginTop: 10 }}>
+            <button 
+                type="submit" 
+                style={{ 
+                    background: 'blue', 
+                    color: 'white', 
+                    padding: '10px 20px', 
+                    border: 'none', 
+                    borderRadius: 4, 
+                    cursor: 'pointer', 
+                    fontWeight: 'bold',
+                    marginRight: 10
+                }}
+            >
+                Lưu Dữ Liệu
+            </button>
+            
+            <button 
+                type="button" 
+                onClick={() => navigate('/nhan-khau')}
+                style={{ 
+                    padding: '10px 20px', 
+                    border: '1px solid #ccc', 
+                    background: '#f0f0f0', 
+                    borderRadius: 4, 
+                    cursor: 'pointer' 
+                }}
+            >
+                Hủy
+            </button>
         </div>
       </form>
     </div>
