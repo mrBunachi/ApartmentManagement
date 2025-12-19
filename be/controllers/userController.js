@@ -57,7 +57,11 @@ const getUserController = async (req, res) => {
     } else {
       // lấy danh sách user theo filter từ query hoặc body
       const filters = {...req.query} || {}; 
-      const result = await userServices.getUsers(data=filters);
+      const page = parseInt(filters.page) || 1;
+      const limit = parseInt(filters.limit) || 20;
+      delete filters.page;
+      delete filters.limit;
+      const result = await userServices.getUsers(data=filters, page, limit);
       if (!result || !result.users || result.users.length === 0) {
         return res.status(404).json({ message: "Không tìm thấy user" });
       }

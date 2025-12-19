@@ -95,7 +95,7 @@ model HOKHAU {
   DANHSACHTHUPHI                     DANHSACHTHUPHI[]
   DONGGOP                            DONGGOP[]
   PHITHUHO                           PHITHUHO[]
-  NHANKHAU_HOKHAU_IDCHUHOToNHANKHAU  NHANKHAU         @relation("HOKHAU_IDCHUHOToNHANKHAU", fields: [IDCHUHO], references: [MANHANKHAU])
+  NHANKHAU                           NHANKHAU         @relation("HOKHAU_IDCHUHOToNHANKHAU", fields: [IDCHUHO], references: [MANHANKHAU])
   PHICODINH                          PHICODINH        @relation(fields: [LOAICANHO], references: [LOAICANHO])
   NHANKHAU_NHANKHAU_MAHOKHAUToHOKHAU NHANKHAU[]       @relation("NHANKHAU_MAHOKHAUToHOKHAU")
 }
@@ -122,27 +122,27 @@ model NGUOIQUANLY {
 }
 
 model NHANKHAU {
-  MANHANKHAU                       Int       @id @default(autoincrement())
-  MAHOKHAU                         Int?
-  HOTEN                            String
-  SOCANCUOC                        String?   @unique @db.VarChar(20)
-  NGAYSINH                         DateTime? @db.Date
-  GIOITINH                         String?   @db.VarChar(10)
-  NOISINH                          String?
-  NGUYENQUAN                       String?
-  DANTOC                           String?   @db.VarChar(30)
-  TONGIAO                          String?   @db.VarChar(30)
-  QUOCTICH                         String?   @db.VarChar(50)
-  NOITHUONGTRU                     String?
-  NGHENGHIEP                       String?
-  NGAYTAO                          DateTime? @default(now())
-  QUANHEVOICHUHO                   String?   @db.VarChar(50)
-  GHICHU                           String?
-  ACTIVATE                         Boolean   @default(true)
-  HOKHAU_HOKHAU_IDCHUHOToNHANKHAU  HOKHAU[]  @relation("HOKHAU_IDCHUHOToNHANKHAU")
-  HOKHAU_NHANKHAU_MAHOKHAUToHOKHAU HOKHAU?   @relation("NHANKHAU_MAHOKHAUToHOKHAU", fields: [MAHOKHAU], references: [MAHOKHAU])
-  TAMTRU                           TAMTRU[]
-  TAMVANG                          TAMVANG[]
+  MANHANKHAU                      Int       @id @default(autoincrement())
+  MAHOKHAU                        Int?
+  HOTEN                           String
+  SOCANCUOC                       String?   @unique @db.VarChar(20)
+  NGAYSINH                        DateTime? @db.Date
+  GIOITINH                        String?   @db.VarChar(10)
+  NOISINH                         String?
+  NGUYENQUAN                      String?
+  DANTOC                          String?   @db.VarChar(30)
+  TONGIAO                         String?   @db.VarChar(30)
+  QUOCTICH                        String?   @db.VarChar(50)
+  NOITHUONGTRU                    String?
+  NGHENGHIEP                      String?
+  NGAYTAO                         DateTime? @default(now())
+  QUANHEVOICHUHO                  String?   @db.VarChar(50)
+  GHICHU                          String?
+  ACTIVATE                        Boolean   @default(true)
+  HOKHAU_HOKHAU_IDCHUHOToNHANKHAU HOKHAU[]  @relation("HOKHAU_IDCHUHOToNHANKHAU")
+  HOKHAU                          HOKHAU?   @relation("NHANKHAU_MAHOKHAUToHOKHAU", fields: [MAHOKHAU], references: [MAHOKHAU])
+  TAMTRU                          TAMTRU[]
+  TAMVANG                         TAMVANG[]
 }
 
 model PHICODINH {
