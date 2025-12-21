@@ -43,8 +43,9 @@ const createContribution = async (data) => {
 };
 
 // 2. Lấy danh sách đóng góp (có lọc và phân trang)
-const getContributions = async (filters, page = 1, limit = 20) => {
+const getContributions = async (filters, page, limit) => {
   try {
+    console.log(filters);
     const parsedFilters = contributionDataParse(filters);
 
     // Xử lý tìm kiếm theo tên chủ hộ (gần đúng)

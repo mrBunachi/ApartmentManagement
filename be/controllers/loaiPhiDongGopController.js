@@ -6,23 +6,44 @@ const getFeeTypeController = async (req, res) => {
     const { id } = req.params;
 
     if (id) {
+      // Lấy chi tiết
       const result = await feeTypeServices.getFeeTypeById(id);
       return res.status(200).json({ 
         message: "Lấy thông tin loại phí thành công", 
         data: result.feeType 
       });
     } else {
-      const filters = { ...req.query };
-      const result = await feeTypeServices.getFeeTypes(filters);
+      // Lấy danh sách (Phân trang & Lọc)
+      const query = { ...req.query };
+      
+      // Tách page và limit ra để xử lý phân trang
+      const page = parseInt(query.page) || 1;
+      const limit = parseInt(query.limit) || 20;
+
+      // Xóa page và limit khỏi object lọc để tránh lỗi query database
+      delete query.page;
+      delete query.limit;
+
+      const result = await feeTypeServices.getFeeTypes(query, page, limit);
 
       if (!result || result.count === 0) {
-        return res.status(404).json({ message: "Không tìm thấy dữ liệu" });
+        // Có thể trả về 200 với mảng rỗng thay vì 404 để frontend dễ xử lý
+        return res.status(200).json({ 
+            message: "Danh sách trống", 
+            data: [], 
+            total: 0 
+        });
       }
 
       return res.status(200).json({
         message: "Lấy danh sách loại phí thành công",
         data: result.feeTypes,
-        total: result.count
+        pagination: {
+            total: result.count,
+            page: page,
+            limit: limit,
+            totalPages: Math.ceil(result.count / limit)
+        }
       });
     }
   } catch (error) {
@@ -33,7 +54,7 @@ const getFeeTypeController = async (req, res) => {
   }
 };
 
-// POST /loai-phi
+// ... (Giữ nguyên các hàm create, update, delete như cũ vì logic cơ bản đã ổn)
 const createFeeTypeController = async (req, res) => {
   try {
     const data = { ...req.body };
@@ -53,7 +74,6 @@ const createFeeTypeController = async (req, res) => {
   }
 };
 
-// PUT /loai-phi/:id
 const updateFeeTypeController = async (req, res) => {
   try {
     const { id } = req.params;
@@ -71,7 +91,6 @@ const updateFeeTypeController = async (req, res) => {
   }
 };
 
-// DELETE /loai-phi/:id
 const deleteFeeTypeController = async (req, res) => {
   try {
     const { id } = req.params;

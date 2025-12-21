@@ -24,10 +24,10 @@ const feeDataParse = (data) => {
   }
 };
 
-const getDotThuPhis = async (filters, page = 1, limit = 20) => {
+const getDotThuPhis = async (filters, page, limit) => {
   try {
     const parsedFilters = feeDataParse(filters);
-
+    console.log(filters);
     const dotThuPhis = await prisma.dOTTHUPHI.findMany({
       skip: (page - 1) * limit,
       take: limit,

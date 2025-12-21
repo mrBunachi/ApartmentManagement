@@ -1,109 +1,65 @@
-const collectedFeeServices = require("../services/phiThuHoServices");
+const service = require("../services/phiThuHoServices");
 
-// GET /phi-thu-ho và GET /phi-thu-ho/:madotthu/:mahokhau
-const getCollectedFeeController = async (req, res) => {
+const createController = async (req, res) => {
   try {
-    const { madotthu, mahokhau } = req.params;
+    console.log(req.body);
+    const result = await service.createPhiThuHo(req.body);
+    return res.status(201).json({ message: "Kê khai phí thành công", data: result.newPhi });
+  } catch (error) {
+    return res.status(error.status || 500).json({ message: "Lỗi tạo phí", error: error.message });
+  }
+};
 
-    if (madotthu && mahokhau) {
-      const result = await collectedFeeServices.getCollectedFeeById(madotthu, mahokhau);
-      return res.status(200).json({ 
-        message: "Lấy thông tin phí thu hộ thành công", 
-        data: result.entry 
-      });
-    } else {
-      const filters = { ...req.query };
-      const page = parseInt(filters.page) || 1;
-      const limit = parseInt(filters.limit) || 20;
+const getController = async (req, res) => {
+  try {
+    const filters = { ...req.query };
+    const page = parseInt(filters.page) || 1;
+    const limit = parseInt(filters.limit) || 20;
+    delete filters.page;
+    delete filters.limit;
 
-      delete filters.page;
-      delete filters.limit;
+    const result = await service.getPhiThuHoList(filters, page, limit);
 
-      const result = await collectedFeeServices.getCollectedFees(filters, page, limit);
-
-      if (!result || result.count === 0) {
-        return res.status(404).json({ message: "Không tìm thấy dữ liệu" });
+    return res.status(200).json({
+      message: "Lấy danh sách thành công",
+      data: result.list,
+      pagination: {
+        total: result.count,
+        page, limit,
+        totalPages: Math.ceil(result.count / limit)
       }
-
-      return res.status(200).json({
-        message: "Lấy danh sách phí thu hộ thành công",
-        data: result.collectedFees,
-        pagination: {
-            total: result.count,
-            page: page,
-            limit: limit,
-            totalPages: Math.ceil(result.count / limit)
-        }
-      });
-    }
-  } catch (error) {
-    return res.status(error.status || 500).json({ 
-      message: "Lỗi lấy thông tin phí thu hộ", 
-      error: error.message 
     });
+  } catch (error) {
+    return res.status(500).json({ message: "Lỗi server", error: error.message });
   }
 };
 
-// POST /phi-thu-ho
-const createCollectedFeeController = async (req, res) => {
+// Update: Cần 2 params (MADOTTHU và MAHOKHAU)
+// Route sẽ dạng: PUT /api/phi-thu-ho/:maDotThu/:maHoKhau
+const updateController = async (req, res) => {
   try {
-    const data = { ...req.body };
-    if (!data.MADOTTHU || !data.MAHOKHAU) {
-        return res.status(400).json({ message: "Mã đợt thu và Mã hộ khẩu là bắt buộc" });
-    }
-
-    const result = await collectedFeeServices.createCollectedFee(data);
-    return res.status(201).json({ 
-        message: "Tạo phí thu hộ thành công", 
-        data: result.newEntry 
-    });
+    const { maDotThu, maHoKhau } = req.params;
+    const result = await service.updatePhiThuHo(maDotThu, maHoKhau, req.body);
+    return res.status(200).json({ message: "Cập nhật thành công", data: result.updated });
   } catch (error) {
-    return res.status(error.status || 500).json({ 
-        message: "Lỗi tạo phí thu hộ", 
-        error: error.message 
-    });
+    return res.status(error.status || 500).json({ message: "Lỗi cập nhật", error: error.message });
   }
 };
 
-// PUT /phi-thu-ho/:madotthu/:mahokhau
-const updateCollectedFeeController = async (req, res) => {
+// Delete: Tương tự Update
+const deleteController = async (req, res) => {
   try {
-    const { madotthu, mahokhau } = req.params;
-    const data = { ...req.body };
-    
-    const result = await collectedFeeServices.updateCollectedFee(madotthu, mahokhau, data);
-    return res.status(200).json({ 
-        message: "Cập nhật phí thu hộ thành công", 
-        data: result.updatedEntry 
-    });
+    const { maDotThu, maHoKhau } = req.params;
+    const result = await service.deletePhiThuHo(maDotThu, maHoKhau);
+    return res.status(200).json({ message: "Xóa thành công", data: result.deleted });
   } catch (error) {
-    return res.status(error.status || 500).json({ 
-        message: "Lỗi cập nhật phí thu hộ", 
-        error: error.message 
-    });
+    return res.status(error.status || 500).json({ message: "Lỗi xóa", error: error.message });
   }
 };
 
-// DELETE /phi-thu-ho/:madotthu/:mahokhau
-const deleteCollectedFeeController = async (req, res) => {
-  try {
-    const { madotthu, mahokhau } = req.params;
-    const result = await collectedFeeServices.deleteCollectedFee(madotthu, mahokhau);
-    return res.status(200).json({ 
-        message: "Xóa phí thu hộ thành công", 
-        data: result.deletedEntry 
-    });
-  } catch (error) {
-    return res.status(error.status || 500).json({ 
-        message: "Lỗi xóa phí thu hộ", 
-        error: error.message 
-    });
-  }
-};
-
-module.exports = {
-  getCollectedFeeController,
-  createCollectedFeeController,
-  updateCollectedFeeController,
-  deleteCollectedFeeController
+module.exports = { 
+  createController, 
+  getController, 
+  updateController, 
+  deleteController 
 };

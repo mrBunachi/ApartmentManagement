@@ -2,7 +2,10 @@ const dotThuPhiServices = require('../services/dotThuPhiServices');
 
 const getAllDotThuPhi = async (req, res) => {
     try {
-        const dotThuPhiList = await dotThuPhiServices.getAllDotThuPhi();
+        const filters = { ...req.query };
+        const page = parseInt(filters.page) || 1;
+        const limit = parseInt(filters.limit) || 20;
+        const dotThuPhiList = await dotThuPhiServices.getDotThuPhis(filters, page, limit);
         res.status(200).json({ dotThuPhi: dotThuPhiList });
     }
     catch (error) {

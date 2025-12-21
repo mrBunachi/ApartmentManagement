@@ -5,10 +5,15 @@ const feeTypeDataParse = (data) => {
   try {
     const parsed = { ...data };
 
-    if ("MALOAIPHI" in parsed) parsed.MALOAIPHI = parseInt(parsed.MALOAIPHI, 10);
+    // Không parse MALOAIPHI ở đây vì ID thường do DB tự sinh hoặc truyền qua params
+    // Nếu update thì ID nằm ở params, nếu create thì không cần ID.
+    if ("MALOAIPHI" in parsed) delete parsed.MALOAIPHI; 
     
+    // Nếu frontend gửi NGAYTAO, parse nó, nếu không để DB tự default
     if ("NGAYTAO" in parsed && parsed.NGAYTAO) {
       parsed.NGAYTAO = new Date(parsed.NGAYTAO);
+    } else {
+       delete parsed.NGAYTAO; // Để Prisma dùng @default(now())
     }
 
     return parsed;
@@ -20,13 +25,12 @@ const feeTypeDataParse = (data) => {
 // 1. Tạo mới loại phí
 const createFeeType = async (data) => {
   try {
-    // Kiểm tra trùng tên (nếu cần thiết)
+    // Kiểm tra trùng tên
     const existing = await prisma.lOAIPHI.findFirst({
         where: { TEN: data.TEN }
     });
     if (existing) {
-        // Tùy business logic, có thể throw lỗi hoặc vẫn cho tạo
-        // throw { status: 400, message: 'Tên loại phí đã tồn tại' };
+         throw { status: 400, message: 'Tên loại phí đã tồn tại' };
     }
 
     const newFeeType = await prisma.lOAIPHI.create({
@@ -38,20 +42,25 @@ const createFeeType = async (data) => {
   }
 };
 
-// 2. Lấy danh sách
-const getFeeTypes = async (filters) => {
+// 2. Lấy danh sách (ĐÃ SỬA: Thêm logic phân trang)
+const getFeeTypes = async (filters, page = 1, limit = 20) => {
   try {
     const where = {};
     
-    // Tìm kiếm theo tên
+    // Tìm kiếm theo tên (nếu có)
     if (filters.TEN) {
-        where.TEN = { contains: filters.TEN, mode: 'insensitive' };
+        where.TEN = { contains: filters.TEN, mode: 'insensitive' }; // mode insensitive để tìm ko phân biệt hoa thường
     }
+
+    // Tính toán skip cho phân trang
+    const skip = (page - 1) * limit;
 
     const feeTypes = await prisma.lOAIPHI.findMany({
       where,
+      skip: skip,
+      take: limit,
       orderBy: {
-        MALOAIPHI: 'asc'
+        MALOAIPHI: 'desc' // Thường user muốn xem cái mới tạo nhất
       }
     });
 
@@ -70,8 +79,6 @@ const getFeeTypeById = async (id) => {
       where: {
         MALOAIPHI: parseInt(id),
       },
-      // Include danh sách đóng góp thuộc loại này nếu cần kiểm tra
-      // include: { DONGGOP: true }
     });
 
     if (!feeType) {
@@ -112,7 +119,6 @@ const deleteFeeType = async (id) => {
     return { deletedFeeType };
   } catch (error) {
     if (error.code === 'P2025') throw { status: 404, message: 'Không tìm thấy loại phí để xóa' };
-    // Lỗi khóa ngoại: Không thể xóa nếu đã có khoản đóng góp tham chiếu đến loại phí này
     if (error.code === 'P2003') throw { status: 400, message: 'Không thể xóa loại phí này vì đã có dữ liệu đóng góp liên quan' };
     throw { status: 500, message: error.message };
   }
