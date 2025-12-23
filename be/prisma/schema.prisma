@@ -85,7 +85,6 @@ model HOKHAU {
   DIACHI                             String?
   NGAYTAO                            DateTime?        @default(now())
   GHICHU                             String?
-  TENCHUHO                           String
   XEMAY                              Int?             @default(0)
   OTO                                Int?             @default(0)
   MAPHONG                            String           @db.VarChar(20)
@@ -95,7 +94,7 @@ model HOKHAU {
   DANHSACHTHUPHI                     DANHSACHTHUPHI[]
   DONGGOP                            DONGGOP[]
   PHITHUHO                           PHITHUHO[]
-  NHANKHAU                           NHANKHAU         @relation("HOKHAU_IDCHUHOToNHANKHAU", fields: [IDCHUHO], references: [MANHANKHAU])
+  THONGTINCHUHO                      NHANKHAU         @relation("HOKHAU_IDCHUHOToNHANKHAU", fields: [IDCHUHO], references: [MANHANKHAU])
   PHICODINH                          PHICODINH        @relation(fields: [LOAICANHO], references: [LOAICANHO])
   NHANKHAU_NHANKHAU_MAHOKHAUToHOKHAU NHANKHAU[]       @relation("NHANKHAU_MAHOKHAUToHOKHAU")
 }
