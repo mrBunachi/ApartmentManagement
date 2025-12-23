@@ -121,7 +121,7 @@ const deleteResidentController = async (req, res) => {
     return res
       .status(200)
       .json({
-        message: "Xóa (deactivate) nhân khẩu thành công",
+        message: "Xóa nhân khẩu thành công",
         resident: deletedResident.deleteRes,
       });
   } catch (error) {

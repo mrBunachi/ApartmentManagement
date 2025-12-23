@@ -89,7 +89,7 @@ const deleteApartment = async (id) => {
     const data = {
       ACTIVATE: false
     }
-    const deleteApt = await prisma.hOKHAU.update({ where, data })
+    const deleteApt = await prisma.hOKHAU.delete({where})
     return { deleteApt }
   } catch (error) {
     if (error.code === 'P2025') {

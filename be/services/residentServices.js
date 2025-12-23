@@ -58,7 +58,7 @@ const createResident = async(data) => {
     }
     catch (error) {
         if (error.code === 'P2025') { // Prisma not found error
-                throw { status: 404, message: 'User not found' }
+                throw { status: 404, message: 'Không có user hoặc không có loại căn hộ' }
             }
                 throw { status: 500, message: error.message }
     }
@@ -94,15 +94,10 @@ const getResById = async (id , active=null, include = false) => {
 }
 const deleteResident = async(id) => {
     try {
-        const deleteRes = await prisma.nHANKHAU.update({
+        const deleteRes = await prisma.nHANKHAU.delete({
             where: {
                 // Với trường Unique như ID, bạn có thể viết gọn không cần 'equals'
                 MANHANKHAU: parseInt(id) 
-            },
-            data: {
-                // SAI: ACTIVATE: { equals: false }
-                // ĐÚNG: Gán trực tiếp giá trị hoặc dùng { set: false }
-                ACTIVATE: false 
             }
         });
 

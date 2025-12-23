@@ -108,8 +108,8 @@ const deleteUser = async (id) => {
             id:parseInt(id)
         }
         console.log(id)
-        const deleteUser =await prisma.nGUOIQUANLY.update({
-            where, data:{ACTIVATE:false}
+        const deleteUser =await prisma.nGUOIQUANLY.delete({
+            where
         })
         return {deleteUser};
 
