@@ -4,7 +4,6 @@ const { prisma } = require("../config/database")
 const apartmentDataParse = (data) => {
   try {
     const parsed = { ...data }
-    console.log(data)
     // Parse các trường số nguyên
     if ("MAHOKHAU" in parsed) parsed.MAHOKHAU = parseInt(parsed.MAHOKHAU, 10)
     if ("IDCHUHO" in parsed && parsed.IDCHUHO !== null) 
@@ -52,15 +51,14 @@ const createApartment = async (data) => {
 const getApartmentById = async (id, include=false) => {
   try {
     const where = {
-      MAHOKHAU: {
-        equals: parseInt(id),
-      },
+      MAHOKHAU:  parseInt(id)
+      ,
     }
     // Có thể include thêm thông tin Chủ hộ để hiển thị chi tiết hơn
     const apartment = await prisma.hOKHAU.findFirst({ 
         where,
         include:include ?  {
-            NHANKHAU: true, // Include thông tin chủ hộ
+            THONGTINCHUHO: true, // Include thông tin chủ hộ
             PHICODINH: true
         }:undefined
     })

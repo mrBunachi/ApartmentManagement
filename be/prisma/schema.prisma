@@ -169,7 +169,7 @@ model TAMTRU {
 model TAMVANG {
   MADANGKYTAMVANG Int       @id @default(autoincrement()) // Đặt làm @id
   MANHANKHAU      Int
-  NOTAMTRU        String?
+  NOITAMTRU       String?
   TUNGAY          DateTime? @db.Date
   DENNGAY         DateTime? @db.Date
   LYDO            String?
