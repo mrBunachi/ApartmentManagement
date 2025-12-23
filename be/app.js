@@ -15,6 +15,7 @@ const feeListRoutes = require("./routes/feeListRoute")
 const loaiPhiDongGopRoutes = require("./routes/loaiPhiDongGopRoute")
 const phiCoDinhRoutes = require("./routes/phiCoDinhRoute")
 const phiThuHoRoutes = require("./routes/phiThuHoRoute")
+const tamTruRoutes = require("./routes/tamTruRoute")
 const app = express();
 
 app.use(cors({
@@ -38,6 +39,7 @@ app.use("/danh-sach-thu-phi", feeListRoutes);
 app.use("/loai-phi-dong-gop", loaiPhiDongGopRoutes);
 app.use("/phi-co-dinh", phiCoDinhRoutes);
 app.use("/phi-thu-ho", phiThuHoRoutes);
+app.use("/tam-tru", tamTruRoutes)
 // Swagger UI
 swaggerSetup(app);
 
