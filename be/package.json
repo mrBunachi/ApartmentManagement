@@ -22,7 +22,8 @@
     "mongoose": "^8.18.2",
     "nodemon": "^3.1.10",
     "swagger-jsdoc": "^6.2.8",
-    "swagger-ui-express": "^5.0.1"
+    "swagger-ui-express": "^5.0.1",
+    "vnpay": "^2.4.4"
   },
   "devDependencies": {
     "prisma": "^6.18.0"

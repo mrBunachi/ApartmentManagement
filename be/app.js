@@ -17,6 +17,7 @@ const phiCoDinhRoutes = require("./routes/phiCoDinhRoute")
 const phiThuHoRoutes = require("./routes/phiThuHoRoute")
 const tamTruRoutes = require("./routes/tamTruRoute")
 const tamVangRoutes = require("./routes/tamVangRoute")
+const qr_gen = require("./routes/qrRoute")
 const app = express();
 
 app.use(cors({
@@ -42,6 +43,7 @@ app.use("/phi-co-dinh", phiCoDinhRoutes);
 app.use("/phi-thu-ho", phiThuHoRoutes);
 app.use("/tam-tru", tamTruRoutes)
 app.use("/tam-vang",tamVangRoutes)
+app.use("/qr",qr_gen)
 // Swagger UI
 swaggerSetup(app);
 

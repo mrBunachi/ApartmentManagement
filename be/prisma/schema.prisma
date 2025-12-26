@@ -20,9 +20,9 @@ model DANHSACHTHUPHI {
   TIENDICHVU   Decimal?  @db.Decimal(18, 2)
   TIENXEMAY    Decimal?  @db.Decimal(18, 2)
   TIENOTO      Decimal?  @db.Decimal(18, 2)
-  TENDIEN      String?
+  TIENDIEN     Decimal?  @db.Decimal(18, 2)
   SODIEN       Decimal?  @db.Decimal(18, 2)
-  TENNUOC      String?
+  TIENNUOC     Decimal?  @db.Decimal(18, 2)
   SONUOC       Decimal?  @db.Decimal(18, 2)
   TIENINTERNET Decimal?  @db.Decimal(18, 2)
   TRANGTHAI    String?   @db.VarChar(50) // Giữ lại VarChar nếu muốn giới hạn
@@ -43,7 +43,6 @@ model DONGGOP {
   SOTIENDADONG Decimal?  @db.Decimal(18, 2)
   TRANGTHAI    String?   @db.VarChar(50)
   NGAYDONG     DateTime?
-  TENCHUHO     String?
 
   DOTTHUPHI DOTTHUPHI? @relation(fields: [MADOTTHU], references: [MADOTTHU], onDelete: Cascade)
   HOKHAU    HOKHAU?    @relation(fields: [MAHOKHAU], references: [MAHOKHAU], onDelete: Cascade)
@@ -81,7 +80,7 @@ model PHITHUHO {
 
 model HOKHAU {
   MAHOKHAU                           Int              @id @default(autoincrement())
-  IDCHUHO                            Int
+  IDCHUHO                            Int?
   DIACHI                             String?
   NGAYTAO                            DateTime?        @default(now())
   GHICHU                             String?
@@ -148,7 +147,7 @@ model PHICODINH {
   LOAICANHO    String   @id @db.VarChar(50)
   GIATIENCANHO Decimal? @db.Decimal(18, 2)
   PHIQLCHUNGCU Decimal? @db.Decimal(18, 2)
-  PHIKEDAP     Decimal? @db.Decimal(18, 2)
+  PHIXEMAY     Decimal? @db.Decimal(18, 2)
   PHIXEOTO     Decimal? @db.Decimal(18, 2)
   HOKHAU       HOKHAU[]
 }
