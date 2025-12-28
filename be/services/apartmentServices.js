@@ -30,13 +30,62 @@ const apartmentDataParse = (data) => {
   }
 }
 
+
+const chuyenHoKhau = async (idHoKhau, idChuHoMoi) => {
+  try{
+    const newOwner = await prisma.nHANKHAU.findFirst({
+      MANHANKHAU:idChuHoMoi, ACTIVATE:true
+    });
+    if (!newOwner){
+        throw { status: 400, message: 'Chủ hộ không tồn tại hoặc chưa được kích hoạt' };
+      }
+    const hoKhau = await prisma.hOKHAU.findFirst({
+      MAHOKHAU:idHoKhau, ACTIVATE:true
+    })
+    if(!hoKhau){
+      throw {status: 400, message: "Hộ khẩu không tồn tại hoặc đã bị xóa"}
+    }
+    else if (hoKhau.IDCHUHO != null){
+      throw {status: 500, message: "Để chuyển chủ hộ cần thực hiện xóa hộ khẩu cũ, tạo hỗ khẩu mới"}
+    }
+    const result = await prisma.hOKHAU.update({
+      where:{
+        MAHOKHAU:idHoKhau
+      },
+      data:{
+        IDCHUHO:idChuHoMoi
+      }
+    });
+    return result
+  }
+  catch(error){
+    throw error
+  }
+} 
 // 1. Tạo mới hộ khẩu
 const createApartment = async (data) => {
   try {
+    let newApartment
     // Lưu ý: IDCHUHO bắt buộc phải tồn tại trong bảng NHANKHAU trước
-    const newApartment = await prisma.hOKHAU.create({
+    if (data.IDCHUHO){
+      const idchuho = parseInt(data.IDCHUHO)
+      const owner = await prisma.nHANKHAU.findFirst({
+        where:{MANHANKHAU:idchuho, ACTIVATE:true}
+      })
+      if (!owner){
+        throw { status: 400, message: 'Chủ hộ không tồn tại hoặc chưa được kích hoạt' };
+      }
+      const result = await prisma.hOKHAU.create({data: apartmentDataParse(data)});
+       
+      newApartment = result
+
+    }
+    else{
+      newApartment = await prisma.hOKHAU.create({
       data: apartmentDataParse(data)
     })
+    }
+    
     return { newApartment }
   } catch (error) {
     // Lỗi vi phạm khóa ngoại (P2003) thường gặp khi IDCHUHO không tồn tại
@@ -79,6 +128,8 @@ const getApartmentById = async (id, include=false) => {
 // 3. Xóa hộ khẩu (Soft Delete - Chuyển ACTIVATE thành false)
 const deleteApartment = async (id) => {
   try {
+    const hokhau = parseInt(id)
+
     const where = {
       MAHOKHAU: parseInt(id)
 
@@ -87,8 +138,50 @@ const deleteApartment = async (id) => {
     const data = {
       ACTIVATE: false
     }
-    const deleteApt = await prisma.hOKHAU.delete({where})
-    return { deleteApt }
+    // const result = await prisma.$transaction([
+    //   prisma.hOKHAU.update({
+    //     where:{MAHOKHAU:hokhau},
+    //     data:{ACTIVATE: false,
+    //       NGAYKETTHUC:new Date()
+    //     }
+    //   }),
+    //   prisma.nHANKHAU.updateMany({
+    //     where:{MAHOKHAU:hokhau},
+    //     data:{MAHOKHAU: null}
+    //   })
+    // ]);
+    const result = await prisma.$transaction(async (prisma) => {
+      const nhankhauList = await prisma.nHANKHAU.findMany({
+        where:{MAHOKHAU:hokhau}
+      })
+      const apt = await prisma.hOKHAU.update({
+        where:{MAHOKHAU:hokhau},
+        data:{ACTIVATE:false,
+          NGAYKETTHUC:new Date()}
+      })
+      if(nhankhauList.length > 0){
+        const historyData = nhankhauList.map((person) => ({
+        MANHANKHAU: person.MANHANKHAU,
+        MAHOKHAU: hokhau,              // Lưu ID hộ khẩu cũ
+        LOAITHAYDOI: 'XOA_HO_KHAU',    // Đánh dấu lý do
+        CHUCVU_CU: person.QUANHEVOICHUHO, // Lưu lại chức vụ cũ (Chủ hộ/Con...)
+        GHI_CHU: 'Hộ khẩu bị xóa',
+        NGAYBATDAU:apt.NGAYTAO,
+        NGAYKETTHUC: new Date()        // Nếu DB chưa để default now()
+      }))
+        await prisma.lICHSU_CUTRU.createMany({
+          data:historyData
+        })
+      }
+      await prisma.nHANKHAU.updateMany({
+        where:{MAHOKHAU:hokhau},
+        data:{MAHOKHAU:null,QUANHEVOICHUHO: null}
+      })
+      
+      return apt
+      
+    })
+    return { deleteApt: result }
   } catch (error) {
     if (error.code === 'P2025') {
       throw { status: 404, message: 'Apartment not found' }
@@ -100,12 +193,17 @@ const deleteApartment = async (id) => {
 // 4. Cập nhật thông tin hộ khẩu
 const updateApartment = async (id, data) => {
   try {
-    const where = {
-      MAHOKHAU:parseInt(id)
-     
+    let updateApt
+    const mahokhau = parseInt(id)
+    
+    if (data.IDCHUHO){
+      await chuyenHoKhau(mahokhau, parseInt(data.IDCHUHO))
+      delete data.IDCHUHO
     }
-    const updateApt = await prisma.hOKHAU.update({ 
-        where, 
+    updateApt = await prisma.hOKHAU.update({ 
+        where:{
+          MAHOKHAU:mahokhau
+        }, 
         data: apartmentDataParse(data) 
     })
     return { updateApt }
@@ -136,8 +234,6 @@ const getApartments = async (data, page = 1, limit = 10,include=false) => {
     })
 
     const count = await prisma.hOKHAU.count({
-      skip: (page - 1) * limit,
-      take: limit,
       where: filter
     })
 

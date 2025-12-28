@@ -49,8 +49,6 @@ const getUsers = async (data, page = 1, limit = 20) => {
     });
     
     const count = await prisma.nGUOIQUANLY.count({
-        skip: (page - 1) * limit,
-        take: limit,
         where:userDataParse(data)
     })
 

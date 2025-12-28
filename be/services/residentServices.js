@@ -49,18 +49,30 @@ const resDataParse = (data) => {
     }
 }
 
-const createResident = async(data) => {
-    try{
-        const newRes = await prisma.nHANKHAU.create({
-            data:resDataParse(data)
-        })
-        return {newRes};
-    }
-    catch (error) {
-        if (error.code === 'P2025') { // Prisma not found error
-                throw { status: 404, message: 'Không có user hoặc không có loại căn hộ' }
+// 1. Tạo mới nhân khẩu
+const createResident = async (data) => {
+    try {
+        const parsedData = resDataParse(data);
+
+        // Validate: Nếu gán vào hộ khẩu ngay, kiểm tra hộ khẩu có tồn tại/active không
+        if (parsedData.MAHOKHAU) {
+            const house = await prisma.hOKHAU.findFirst({
+                where: { MAHOKHAU: parsedData.MAHOKHAU, ACTIVATE: true }
+            });
+            if (!house) {
+                throw { status: 400, message: 'Hộ khẩu không tồn tại hoặc chưa kích hoạt' };
             }
-                throw { status: 500, message: error.message }
+        }
+
+        const newRes = await prisma.nHANKHAU.create({
+            data: parsedData
+        })
+        return { newRes };
+    } catch (error) {
+        if (error.code === 'P2003') { 
+             throw { status: 400, message: 'Dữ liệu tham chiếu không hợp lệ (Mã hộ khẩu...)' }
+        }
+        throw { status: 500, message: error.message }
     }
 }
 
@@ -94,12 +106,41 @@ const getResById = async (id , active=null, include = false) => {
 }
 const deleteResident = async(id) => {
     try {
-        const deleteRes = await prisma.nHANKHAU.delete({
-            where: {
-                // Với trường Unique như ID, bạn có thể viết gọn không cần 'equals'
-                MANHANKHAU: parseInt(id) 
-            }
-        });
+        let deleteRes
+        const nhankhau = parseInt(id)
+        const findAparList = await prisma.hOKHAU.findMany({
+            where:{IDCHUHO:id}
+        })
+        if(findAparList.length > 0){
+            const houseIds = findAparList.map(h => h.MAHOKHAU).join(', ');
+            throw { 
+                status: 400, 
+                message: `Không thể xóa công dân này vì đang là Chủ hộ của các hộ khẩu: [${houseIds}]. Vui lòng chuyển quyền chủ hộ hoặc xóa hộ khẩu trước.` 
+            };
+        }
+        else{
+            const result = await prisma.$transaction(async (db) =>{
+                const delRes = await db.nHANKHAU.update({
+                    where:{MANHANKHAU:nhankhau},
+                    data:{ACTIVATE:false,
+                        NGAYKETTHUC:new Date()
+                    }
+                })
+                const historyData ={
+                    MANHANKHAU: delRes.MANHANKHAU,
+                    MAHOKHAU: delRes.MAHOKHAU,              // Lưu ID hộ khẩu cũ
+                    LOAITHAYDOI: 'XOA_NGUOI_O',    // Đánh dấu lý do
+                    CHUCVU_CU: delRes.QUANHEVOICHUHO, // Lưu lại chức vụ cũ (Chủ hộ/Con...)
+                    GHI_CHU: 'Ngưởi ở đã bị xóa',
+                    NGAYBATDAU:delRes.NGAYTAO,
+                    NGAYKETTHUC: new Date()        // Nếu DB chưa để default now()
+                }
+                await db.lICHSU_CUTRU.create({data:historyData})
+                return delRes
+            })
+            deleteRes = result
+        }
+        
 
         // Trả về trực tiếp deleteRes để có thông tin nhân khẩu vừa cập nhật
         return {deleteRes}; 
@@ -111,19 +152,55 @@ const deleteResident = async(id) => {
         throw { status: 500, message: error.message };
     }
 }
-const updateResident = async (id,data) => {
-    try{
-        const where={
-            MANHANKHAU:parseInt(id)
-        }
-        const updateRes = await prisma.nHANKHAU.update({where, data:resDataParse(data)});
-        return {updateRes};
-    }
-    catch (error) {
-        if (error.code === 'P2025') { // Prisma not found error
-                throw { status: 404, message: 'User not found' }
+// 4. Cập nhật nhân khẩu (Xử lý logic chuyển nhà)
+const updateResident = async (id, data) => {
+    try {
+        const nhankhauId = parseInt(id)
+        const parsedData = resDataParse(data)
+        
+        // Logic chuyển hộ khẩu (Nếu có gửi MAHOKHAU mới và khác MAHOKHAU cũ)
+        if (parsedData.MAHOKHAU) {
+            const currentRes = await prisma.nHANKHAU.findUnique({
+                where: { MANHANKHAU: nhankhauId }
+            })
+
+            if (!currentRes) throw { status: 404, message: 'User not found' };
+
+            // Nếu thay đổi hộ khẩu
+            if (currentRes.MAHOKHAU && currentRes.MAHOKHAU !== parsedData.MAHOKHAU) {
+
+                // 2. Ghi lịch sử "Chuyển đi" ở nhà cũ
+                await prisma.lICHSU_CUTRU.create({
+                    data: {
+                        MANHANKHAU: nhankhauId,
+                        MAHOKHAU: currentRes.MAHOKHAU,
+                        LOAITHAYDOI: 'CHUYEN_KHAI_BAO',
+                        CHUCVU_CU: currentRes.QUANHEVOICHUHO,
+                        GHI_CHU: `Chuyển sang hộ khẩu mới: ${parsedData.MAHOKHAU}`,
+                        NGAYBATDAU: currentRes.NGAYTAO, 
+                        NGAYKETTHUC: new Date()
+                    }
+                })
+                
+                // Lưu ý: Khi chuyển sang nhà mới, QUANHEVOICHUHO nên được reset hoặc client phải gửi kèm
+                // Nếu client không gửi quan hệ mới, ta set tạm là null hoặc 'Thành viên'
+                if (!parsedData.QUANHEVOICHUHO) {
+                    parsedData.QUANHEVOICHUHO = null; 
+                }
             }
-                throw { status: 500, message: error.message }
+        }
+
+        const updateRes = await prisma.nHANKHAU.update({
+            where: { MANHANKHAU: nhankhauId },
+            data: parsedData
+        });
+        
+        return { updateRes };
+    } catch (error) {
+        if (error.status) throw error;
+        if (error.code === 'P2025') throw { status: 404, message: 'User not found' };
+        if (error.code === 'P2003') throw { status: 400, message: 'Hộ khẩu mới không tồn tại' };
+        throw { status: 500, message: error.message }
     }
 }
 
@@ -143,8 +220,6 @@ const getResidents = async (data, page=1, limit = 10,include = false) => {
                 } : undefined
         })
         const count = await prisma.nHANKHAU.count({
-                skip: (page - 1) * limit,
-                take: limit,
                 where:resDataParse(data),
                 
             })

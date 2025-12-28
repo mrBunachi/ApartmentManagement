@@ -82,20 +82,21 @@ model HOKHAU {
   MAHOKHAU                           Int              @id @default(autoincrement())
   IDCHUHO                            Int?
   DIACHI                             String?
-  NGAYTAO                            DateTime?        @default(now())
   GHICHU                             String?
   XEMAY                              Int?             @default(0)
   OTO                                Int?             @default(0)
   MAPHONG                            String           @db.VarChar(20)
-  TRANGTHAI                          Boolean          @default(true)
   LOAICANHO                          String           @db.VarChar(50)
+  NGAYTAO                            DateTime?        @default(now())
+  NGAYKETTHUC                        DateTime?
   ACTIVATE                           Boolean          @default(true)
   DANHSACHTHUPHI                     DANHSACHTHUPHI[]
   DONGGOP                            DONGGOP[]
   PHITHUHO                           PHITHUHO[]
-  THONGTINCHUHO                      NHANKHAU         @relation("HOKHAU_IDCHUHOToNHANKHAU", fields: [IDCHUHO], references: [MANHANKHAU], onDelete: Cascade)
+  THONGTINCHUHO                      NHANKHAU?        @relation("HOKHAU_IDCHUHOToNHANKHAU", fields: [IDCHUHO], references: [MANHANKHAU], onDelete: Cascade)
   PHICODINH                          PHICODINH        @relation(fields: [LOAICANHO], references: [LOAICANHO], onDelete: Cascade)
   NHANKHAU_NHANKHAU_MAHOKHAUToHOKHAU NHANKHAU[]       @relation("NHANKHAU_MAHOKHAUToHOKHAU")
+  LICHSU_CUTRU                       LICHSU_CUTRU[]
 }
 
 model LOAIPHI {
@@ -120,27 +121,29 @@ model NGUOIQUANLY {
 }
 
 model NHANKHAU {
-  MANHANKHAU                      Int       @id @default(autoincrement())
+  MANHANKHAU                      Int            @id @default(autoincrement())
   MAHOKHAU                        Int?
   HOTEN                           String
-  SOCANCUOC                       String?   @unique @db.VarChar(20)
-  NGAYSINH                        DateTime? @db.Date
-  GIOITINH                        String?   @db.VarChar(10)
+  SOCANCUOC                       String?        @unique @db.VarChar(20)
+  NGAYSINH                        DateTime?      @db.Date
+  GIOITINH                        String?        @db.VarChar(10)
   NOISINH                         String?
   NGUYENQUAN                      String?
-  DANTOC                          String?   @db.VarChar(30)
-  TONGIAO                         String?   @db.VarChar(30)
-  QUOCTICH                        String?   @db.VarChar(50)
+  DANTOC                          String?        @db.VarChar(30)
+  TONGIAO                         String?        @db.VarChar(30)
+  QUOCTICH                        String?        @db.VarChar(50)
   NOITHUONGTRU                    String?
   NGHENGHIEP                      String?
-  NGAYTAO                         DateTime? @default(now())
-  QUANHEVOICHUHO                  String?   @db.VarChar(50)
+  NGAYTAO                         DateTime?      @default(now())
+  NGAYKETTHUC                     DateTime?
+  QUANHEVOICHUHO                  String?        @db.VarChar(50)
   GHICHU                          String?
-  ACTIVATE                        Boolean   @default(true)
-  HOKHAU_HOKHAU_IDCHUHOToNHANKHAU HOKHAU[]  @relation("HOKHAU_IDCHUHOToNHANKHAU")
-  HOKHAU                          HOKHAU?   @relation("NHANKHAU_MAHOKHAUToHOKHAU", fields: [MAHOKHAU], references: [MAHOKHAU], onDelete: Cascade)
+  ACTIVATE                        Boolean        @default(true)
+  HOKHAU_HOKHAU_IDCHUHOToNHANKHAU HOKHAU[]       @relation("HOKHAU_IDCHUHOToNHANKHAU")
+  HOKHAU                          HOKHAU?        @relation("NHANKHAU_MAHOKHAUToHOKHAU", fields: [MAHOKHAU], references: [MAHOKHAU], onDelete: Cascade)
   TAMTRU                          TAMTRU[]
   TAMVANG                         TAMVANG[]
+  LICHSU_CUTRU                    LICHSU_CUTRU[]
 }
 
 model PHICODINH {
@@ -174,4 +177,20 @@ model TAMVANG {
   LYDO            String?
   NHANKHAU        NHANKHAU  @relation(fields: [MANHANKHAU], references: [MANHANKHAU], onDelete: Cascade)
   // Xóa @@id phức hợp
+}
+
+model LICHSU_CUTRU {
+  ID          Int      @id @default(autoincrement())
+  MANHANKHAU  Int
+  MAHOKHAU    Int // Vẫn lưu ID hộ khẩu cũ để tham chiếu
+  LOAITHAYDOI String? // Enum: "XOA_HO_KHAU", "CHUYEN_DI", "TACH_KHAU"
+  NGAYBATDAU  DateTime
+  NGAYKETTHUC DateTime @default(now())
+
+  CHUCVU_CU String?
+  GHI_CHU   String?
+
+  // Quan hệ (Optional - để dễ join bảng khi cần report)
+  NHANKHAU NHANKHAU @relation(fields: [MANHANKHAU], references: [MANHANKHAU])
+  HOKHAU   HOKHAU   @relation(fields: [MAHOKHAU], references: [MAHOKHAU])
 }
