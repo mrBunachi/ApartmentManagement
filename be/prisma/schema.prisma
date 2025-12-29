@@ -30,7 +30,7 @@ model DANHSACHTHUPHI {
   NGAYDONG     DateTime?
 
   DOTTHUPHI DOTTHUPHI @relation(fields: [MADOTTHU], references: [MADOTTHU], onDelete: Cascade)
-  HOKHAU    HOKHAU    @relation(fields: [MAHOKHAU], references: [MAHOKHAU], onDelete: Cascade)
+  HOKHAU    HOKHAU    @relation(fields: [MAHOKHAU], references: [MAHOKHAU])
 
   @@id([MADOTTHU, MAHOKHAU])
 }
@@ -45,7 +45,7 @@ model DONGGOP {
   NGAYDONG     DateTime?
 
   DOTTHUPHI DOTTHUPHI? @relation(fields: [MADOTTHU], references: [MADOTTHU], onDelete: Cascade)
-  HOKHAU    HOKHAU?    @relation(fields: [MAHOKHAU], references: [MAHOKHAU], onDelete: Cascade)
+  HOKHAU    HOKHAU?    @relation(fields: [MAHOKHAU], references: [MAHOKHAU])
   LOAIPHI   LOAIPHI?   @relation(fields: [MALOAIPHI], references: [MALOAIPHI], onDelete: Cascade)
 }
 
@@ -73,7 +73,7 @@ model PHITHUHO {
   THANHTIENNUOC     Decimal?  @db.Decimal(18, 2)
   THANHTIENINTERNET Decimal?  @db.Decimal(18, 2)
   DOTTHUPHI         DOTTHUPHI @relation(fields: [MADOTTHU], references: [MADOTTHU], onDelete: Cascade)
-  HOKHAU            HOKHAU    @relation(fields: [MAHOKHAU], references: [MAHOKHAU], onDelete: Cascade)
+  HOKHAU            HOKHAU    @relation(fields: [MAHOKHAU], references: [MAHOKHAU])
 
   @@id([MADOTTHU, MAHOKHAU])
 }
@@ -140,7 +140,7 @@ model NHANKHAU {
   GHICHU                          String?
   ACTIVATE                        Boolean        @default(true)
   HOKHAU_HOKHAU_IDCHUHOToNHANKHAU HOKHAU[]       @relation("HOKHAU_IDCHUHOToNHANKHAU")
-  HOKHAU                          HOKHAU?        @relation("NHANKHAU_MAHOKHAUToHOKHAU", fields: [MAHOKHAU], references: [MAHOKHAU], onDelete: Cascade)
+  HOKHAU                          HOKHAU?        @relation("NHANKHAU_MAHOKHAUToHOKHAU", fields: [MAHOKHAU], references: [MAHOKHAU])
   TAMTRU                          TAMTRU[]
   TAMVANG                         TAMVANG[]
   LICHSU_CUTRU                    LICHSU_CUTRU[]
@@ -164,7 +164,7 @@ model TAMTRU {
   TUNGAY                 DateTime? @db.Date
   DENNGAY                DateTime? @db.Date
   LYDO                   String?
-  NHANKHAU               NHANKHAU  @relation(fields: [MANHANKHAU], references: [MANHANKHAU], onDelete: Cascade)
+  NHANKHAU               NHANKHAU  @relation(fields: [MANHANKHAU], references: [MANHANKHAU])
   // Xóa @@id phức hợp
 }
 
@@ -175,14 +175,14 @@ model TAMVANG {
   TUNGAY          DateTime? @db.Date
   DENNGAY         DateTime? @db.Date
   LYDO            String?
-  NHANKHAU        NHANKHAU  @relation(fields: [MANHANKHAU], references: [MANHANKHAU], onDelete: Cascade)
+  NHANKHAU        NHANKHAU  @relation(fields: [MANHANKHAU], references: [MANHANKHAU])
   // Xóa @@id phức hợp
 }
 
 model LICHSU_CUTRU {
   ID          Int      @id @default(autoincrement())
   MANHANKHAU  Int
-  MAHOKHAU    Int // Vẫn lưu ID hộ khẩu cũ để tham chiếu
+  MAHOKHAU    Int? // Vẫn lưu ID hộ khẩu cũ để tham chiếu
   LOAITHAYDOI String? // Enum: "XOA_HO_KHAU", "CHUYEN_DI", "TACH_KHAU"
   NGAYBATDAU  DateTime
   NGAYKETTHUC DateTime @default(now())
@@ -192,5 +192,5 @@ model LICHSU_CUTRU {
 
   // Quan hệ (Optional - để dễ join bảng khi cần report)
   NHANKHAU NHANKHAU @relation(fields: [MANHANKHAU], references: [MANHANKHAU])
-  HOKHAU   HOKHAU   @relation(fields: [MAHOKHAU], references: [MAHOKHAU])
+  HOKHAU   HOKHAU?   @relation(fields: [MAHOKHAU], references: [MAHOKHAU])
 }

@@ -109,7 +109,7 @@ const deleteResident = async(id) => {
         let deleteRes
         const nhankhau = parseInt(id)
         const findAparList = await prisma.hOKHAU.findMany({
-            where:{IDCHUHO:id}
+            where:{IDCHUHO:nhankhau, ACTIVATE:true}
         })
         if(findAparList.length > 0){
             const houseIds = findAparList.map(h => h.MAHOKHAU).join(', ');
@@ -127,8 +127,16 @@ const deleteResident = async(id) => {
                     }
                 })
                 const historyData ={
-                    MANHANKHAU: delRes.MANHANKHAU,
-                    MAHOKHAU: delRes.MAHOKHAU,              // Lưu ID hộ khẩu cũ
+                    NHANKHAU: {
+                        connect: { MANHANKHAU: delRes.MANHANKHAU }
+                    },
+        
+        // Nếu MAHOKHAU trong DB là bắt buộc (Int), bạn cũng phải connect HOKHAU
+                    ...(delRes.MAHOKHAU && {
+                        HOKHAU: {
+                            connect: { MAHOKHAU: delRes.MAHOKHAU }
+                        }
+                    }),           // Lưu ID hộ khẩu cũ
                     LOAITHAYDOI: 'XOA_NGUOI_O',    // Đánh dấu lý do
                     CHUCVU_CU: delRes.QUANHEVOICHUHO, // Lưu lại chức vụ cũ (Chủ hộ/Con...)
                     GHI_CHU: 'Ngưởi ở đã bị xóa',

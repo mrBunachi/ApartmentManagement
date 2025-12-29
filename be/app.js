@@ -17,6 +17,7 @@ const phiCoDinhRoutes = require("./routes/phiCoDinhRoute")
 const phiThuHoRoutes = require("./routes/phiThuHoRoute")
 const tamTruRoutes = require("./routes/tamTruRoute")
 const tamVangRoutes = require("./routes/tamVangRoute")
+const lichsuRoutes = require("./routes/lichsuRoute")
 
 const app = express();
 
@@ -43,6 +44,7 @@ app.use("/phi-co-dinh", phiCoDinhRoutes);
 app.use("/phi-thu-ho", phiThuHoRoutes);
 app.use("/tam-tru", tamTruRoutes)
 app.use("/tam-vang",tamVangRoutes)
+app.use("/lich-su",lichsuRoutes)
 // Swagger UI
 swaggerSetup(app);
 
