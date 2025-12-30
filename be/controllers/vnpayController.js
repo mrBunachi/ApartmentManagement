@@ -18,7 +18,7 @@ const createUrlController = async (req, res) => {
         
         return res.status(201).json({
             message: "Tạo url thành công",
-            tamVang: paymentUrl
+            link: paymentUrl
         });
     } catch (error) {
         return res.status(error.status || 500).json({
