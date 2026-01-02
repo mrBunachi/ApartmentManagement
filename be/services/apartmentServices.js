@@ -1,10 +1,8 @@
 const { prisma } = require("../config/database")
 
-// Helper: Parse dữ liệu đầu vào cho đúng kiểu dữ liệu của Prisma
 const apartmentDataParse = (data) => {
   try {
     const parsed = { ...data }
-    // Parse các trường số nguyên
     if ("MAHOKHAU" in parsed) parsed.MAHOKHAU = parseInt(parsed.MAHOKHAU, 10)
     if ("IDCHUHO" in parsed && parsed.IDCHUHO !== null) 
       {
@@ -13,11 +11,9 @@ const apartmentDataParse = (data) => {
     if ("XEMAY" in parsed) parsed.XEMAY = parseInt(parsed.XEMAY, 10)
     if ("OTO" in parsed) parsed.OTO = parseInt(parsed.OTO, 10)
 
-    // Parse ngày tháng
     if ("NGAYTAO" in parsed && parsed.NGAYTAO)
       parsed.NGAYTAO = new Date(parsed.NGAYTAO)
 
-    // Parse Boolean (xử lý trường hợp gửi string 'true'/'false' từ frontend)
     if ("TRANGTHAI" in parsed)
       parsed.TRANGTHAI = parsed.TRANGTHAI === true || parsed.TRANGTHAI === 'true'
     
@@ -134,22 +130,9 @@ const deleteApartment = async (id) => {
       MAHOKHAU: parseInt(id)
 
     }
-    // Theo schema của bạn là ACTIVATE chứ không phải ACTIVE
     const data = {
       ACTIVATE: false
     }
-    // const result = await prisma.$transaction([
-    //   prisma.hOKHAU.update({
-    //     where:{MAHOKHAU:hokhau},
-    //     data:{ACTIVATE: false,
-    //       NGAYKETTHUC:new Date()
-    //     }
-    //   }),
-    //   prisma.nHANKHAU.updateMany({
-    //     where:{MAHOKHAU:hokhau},
-    //     data:{MAHOKHAU: null}
-    //   })
-    // ]);
     const result = await prisma.$transaction(async (prisma) => {
       const nhankhauList = await prisma.nHANKHAU.findMany({
         where:{MAHOKHAU:hokhau}
@@ -162,12 +145,12 @@ const deleteApartment = async (id) => {
       if(nhankhauList.length > 0){
         const historyData = nhankhauList.map((person) => ({
         MANHANKHAU: person.MANHANKHAU,
-        MAHOKHAU: hokhau,              // Lưu ID hộ khẩu cũ
-        LOAITHAYDOI: 'XOA_HO_KHAU',    // Đánh dấu lý do
-        CHUCVU_CU: person.QUANHEVOICHUHO, // Lưu lại chức vụ cũ (Chủ hộ/Con...)
+        MAHOKHAU: hokhau,              
+        LOAITHAYDOI: 'XOA_HO_KHAU',   
+        CHUCVU_CU: person.QUANHEVOICHUHO,
         GHI_CHU: 'Hộ khẩu bị xóa',
         NGAYBATDAU:apt.NGAYTAO,
-        NGAYKETTHUC: new Date()        // Nếu DB chưa để default now()
+        NGAYKETTHUC: new Date()   
       }))
         await prisma.lICHSU_CUTRU.createMany({
           data:historyData
@@ -226,7 +209,7 @@ const getApartments = async (data, page = 1, limit = 10,include=false) => {
       take: limit,
       where: filter,
       include:include ? {
-        THONGTINCHUHO: { // Lấy tên chủ hộ
+        THONGTINCHUHO: {
             select: { HOTEN: true, SOCANCUOC: true }
         },
         PHICODINH: true

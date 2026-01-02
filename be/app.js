@@ -19,13 +19,16 @@ const tamTruRoutes = require("./routes/tamTruRoute")
 const tamVangRoutes = require("./routes/tamVangRoute")
 const lichsuRoutes = require("./routes/lichsuRoute")
 const vnpayRoutes = require("./routes/vnpayRoute")
+const billRoutes = require("./routes/billRoute")
 
 const app = express();
 
-app.use(cors({
-    origin: process.env.FRONT_URI,
-    credentials: true
-}));
+// app.use(cors({
+//     origin: process.env.FRONT_URI,
+//     credentials: true
+// }));
+
+app.use(cors({ origin: true, credentials: true }));
 
 
 app.use(express.json());
@@ -47,6 +50,7 @@ app.use("/tam-tru", tamTruRoutes)
 app.use("/tam-vang",tamVangRoutes)
 app.use("/lich-su",lichsuRoutes)
 app.use("/vnpay",vnpayRoutes)
+app.use("/bill", billRoutes)
 // Swagger UI
 swaggerSetup(app);
 

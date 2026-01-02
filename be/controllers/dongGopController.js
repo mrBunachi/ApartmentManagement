@@ -1,106 +1,63 @@
-const contributionServices = require("../services/dongGopServices");
+const dongGopServices = require('../services/dongGopServices');
 
-// GET /dong-gop và GET /dong-gop/:id
-const getContributionController = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    if (id) {
-      // Lấy chi tiết
-      const result = await contributionServices.getContributionById(id);
-      return res.status(200).json({ 
-        message: "Lấy thông tin đóng góp thành công", 
-        data: result.contribution 
-      });
-    } else {
-      // Lấy danh sách
-      const filters = { ...req.query };
-      const page = parseInt(filters.page) || 1;
-      const limit = parseInt(filters.limit) || 20;
-
-      delete filters.page;
-      delete filters.limit;
-
-      const result = await contributionServices.getContributions(filters, page, limit);
-
-      if (!result || result.count === 0) {
-        return res.status(404).json({ message: "Không tìm thấy khoản đóng góp nào" });
-      }
-
-      return res.status(200).json({
-        message: "Lấy danh sách đóng góp thành công",
-        data: result.contributions,
-        pagination: {
-            total: result.count,
-            page: page,
-            limit: limit,
-            totalPages: Math.ceil(result.count / limit)
-        }
-      });
+const getAllDongGop = async (req, res) => {
+    try {
+        const filters = { ...req.query };
+        const page = parseInt(filters.page) || 1;
+        const limit = parseInt(filters.limit) || 10;
+        
+        const result = await dongGopServices.getDongGops(filters, page, limit);
+        res.status(200).json({ 
+            data: result.dongGops, 
+            meta: {
+                total: result.count,
+                page,
+                limit
+            }
+        });
     }
-  } catch (error) {
-    return res.status(error.status || 500).json({ 
-      message: "Lỗi lấy thông tin đóng góp", 
-      error: error.message 
-    });
-  }
+    catch (error) {
+        res.status(500).json({ message: "Lỗi lấy danh sách đóng góp", error: error.message });
+    }
 };
 
-// POST /dong-gop
-const createContributionController = async (req, res) => {
-  try {
-    const data = { ...req.body };
-    const result = await contributionServices.createContribution(data);
-    return res.status(201).json({ 
-        message: "Tạo khoản đóng góp thành công", 
-        data: result.newContribution 
-    });
-  } catch (error) {
-    return res.status(error.status || 500).json({ 
-        message: "Lỗi tạo khoản đóng góp", 
-        error: error.message 
-    });
-  }
+const createDongGop = async (req, res) => {
+    try {
+        const data = req.body;
+        const newDongGop = await dongGopServices.createDongGop(data);
+        res.status(201).json({ message: "Tạo phiếu đóng góp thành công", data: newDongGop });
+    }
+    catch (error) {
+        res.status(error.status || 500).json({ message: "Lỗi tạo đóng góp", error: error.message });
+    }
 };
 
-// PUT /dong-gop/:id
-const updateContributionController = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const data = { ...req.body };
-    const result = await contributionServices.updateContribution(id, data);
-    return res.status(200).json({ 
-        message: "Cập nhật khoản đóng góp thành công", 
-        data: result.updatedContribution 
-    });
-  } catch (error) {
-    return res.status(error.status || 500).json({ 
-        message: "Lỗi cập nhật khoản đóng góp", 
-        error: error.message 
-    });
-  }
+const updateDongGop = async (req, res) => {
+    try {
+        const id = req.params.id;
+        const data = req.body;
+        const updated = await dongGopServices.updateDongGop(id, data);
+        res.status(200).json({ message: "Cập nhật thành công", data: updated });
+    }
+    catch (error) {
+        res.status(error.status || 500).json({ message: "Lỗi cập nhật", error: error.message });
+    }
 };
 
-// DELETE /dong-gop/:id
-const deleteContributionController = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const result = await contributionServices.deleteContribution(id);
-    return res.status(200).json({ 
-        message: "Xóa khoản đóng góp thành công", 
-        data: result.deletedContribution 
-    });
-  } catch (error) {
-    return res.status(error.status || 500).json({ 
-        message: "Lỗi xóa khoản đóng góp", 
-        error: error.message 
-    });
-  }
+const deleteDongGop = async (req, res) => {
+    try {
+        const id = req.params.id;
+        const result = await dongGopServices.deleteDongGop(id);
+        res.status(200).json(result);
+    }
+    catch (error) {
+        res.status(error.status || 500).json({ message: "Lỗi xóa", error: error.message });
+    }
 };
 
 module.exports = {
-  getContributionController,
-  createContributionController,
-  updateContributionController,
-  deleteContributionController
-};
+    getAllDongGop,
+    createDongGop,
+    updateDongGop,
+    deleteDongGop,
+}
