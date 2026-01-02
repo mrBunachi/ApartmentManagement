@@ -1,147 +1,103 @@
 const { prisma } = require("../config/database");
 
-// Cấu hình đơn giá (Hardcode tạm thời, sau này có thể tách ra bảng riêng)
-const DON_GIA = {
-    DIEN: 3000,      // 3000 VNĐ / số
-    NUOC: 20000,     // 20000 VNĐ / khối
-    INTERNET: 250000 // Cố định
-};
 
-const phiThuHoDataParse = (data) => {
-  try {
-    const parsed = { ...data };
-
-    // Parse số nguyên ID
-    if ("MADOTTHU" in parsed) parsed.MADOTTHU = parseInt(parsed.MADOTTHU, 10);
-    if ("MAHOKHAU" in parsed) parsed.MAHOKHAU = parseInt(parsed.MAHOKHAU, 10);
-
-    // Parse các chỉ số (Decimal/Float)
-    if ("TONGDIEN" in parsed) parsed.TONGDIEN = parseFloat(parsed.TONGDIEN); // Số điện tiêu thụ
-    if ("TONGNUOC" in parsed) parsed.TONGNUOC = parseFloat(parsed.TONGNUOC); // Số nước tiêu thụ
-    if ("THANHTIENINTERNET" in parsed) parsed.THANHTIENINTERNET = parseFloat(parsed.THANHTIENINTERNET);
-
-    // --- LOGIC TÍNH TIỀN TỰ ĐỘNG ---
-    // Nếu có số điện -> Tính tiền điện
-    if (parsed.TONGDIEN !== undefined && parsed.TONGDIEN >= 0) {
-        parsed.TONGTIENDIEN = parsed.TONGDIEN * DON_GIA.DIEN;
-    }
-    // Nếu có số nước -> Tính tiền nước
-    if (parsed.TONGNUOC !== undefined && parsed.TONGNUOC >= 0) {
-        parsed.THANHTIENNUOC = parsed.TONGNUOC * DON_GIA.NUOC; // Lưu ý: Schema của bạn tên là THANHTIENNUOC hay TONGTIENNUOC? Check lại schema nhé. Tôi dùng THANHTIENNUOC theo schema gửi ban đầu.
-    }
-    
-    // Nếu Internet không nhập thì mặc định
-    if (parsed.THANHTIENINTERNET === undefined) {
-        parsed.THANHTIENINTERNET = DON_GIA.INTERNET;
-    }
-
-    return parsed;
-  } catch (error) {
-    throw { status: 500, message: error.message };
-  }
-};
-
-// 1. Tạo khoản thu hộ mới (Cho 1 hộ trong 1 đợt)
-const createPhiThuHo = async (data) => {
-  try {
-    console.log(data);
-    const parsedData = phiThuHoDataParse(data);
-
-    // Kiểm tra xem hộ này đã được kê khai trong đợt này chưa
-    const existing = await prisma.pHITHUHO.findUnique({
-        where: {
-            MADOTTHU_MAHOKHAU: { // Cú pháp của Prisma cho Composite Key
-                MADOTTHU: parsedData.MADOTTHU,
-                MAHOKHAU: parsedData.MAHOKHAU
-            }
-        }
-    });
-
-    if (existing) {
-        throw { status: 400, message: "Hộ khẩu này đã được kê khai phí trong đợt thu này rồi." };
-    }
-
-    const newPhi = await prisma.pHITHUHO.create({
-      data: parsedData
-    });
-    return { newPhi };
-  } catch (error) {
-    if (error.code === 'P2003') throw { status: 400, message: "Mã đợt thu hoặc Mã hộ khẩu không hợp lệ" };
-    throw { status: error.status || 500, message: error.message };
-  }
-};
-
-// 2. Lấy danh sách (Lọc theo Đợt thu hoặc Hộ khẩu)
-const getPhiThuHoList = async (filters, page = 1, limit = 20) => {
+const getAllPhiThuHo = async (maDotThu) => {
   try {
     const where = {};
-    if (filters.MADOTTHU) where.MADOTTHU = parseInt(filters.MADOTTHU);
-    if (filters.MAHOKHAU) where.MAHOKHAU = parseInt(filters.MAHOKHAU);
+    if (maDotThu) where.MADOTTHU = parseInt(maDotThu);
 
-    const list = await prisma.pHITHUHO.findMany({
-      skip: (page - 1) * limit,
-      take: limit,
-      where,
+    const data = await prisma.pHITHUHO.findMany({
+      where: where,
       include: {
-        HOKHAU: { select: { MAPHONG: true, TENCHUHO: true } },
-        DOTTHUPHI: { select: { TEN: true } }
-      },
-      orderBy: { MADOTTHU: 'desc' }
+        HOKHAU: {
+          select: {
+            MAPHONG: true,
+            THONGTINCHUHO: { select: { HOTEN: true } }
+          }
+        }
+      }
     });
-
-    const count = await prisma.pHITHUHO.count({ where });
-
-    return { list, count };
+    return data;
   } catch (error) {
     throw { status: 500, message: error.message };
   }
 };
 
-// 3. Cập nhật (Sửa số điện/nước)
-const updatePhiThuHo = async (maDotThu, maHoKhau, data) => {
-    try {
-        const parsedData = phiThuHoDataParse(data);
-        // Không cho phép sửa ID khóa chính
-        delete parsedData.MADOTTHU;
-        delete parsedData.MAHOKHAU;
+const updatePhiThuHo = async (madotthu, mahokhau, data) => {
+  try {
+    // 1. Validate đầu vào
+    const maDotThuInt = parseInt(madotthu);
+    const maHoKhauInt = parseInt(mahokhau);
+    
+    // Lấy thông tin cũ để giữ lại đơn giá nếu không gửi lên
+    const currentData = await prisma.pHITHUHO.findUnique({
+        where: { MADOTTHU_MAHOKHAU: { MADOTTHU: maDotThuInt, MAHOKHAU: maHoKhauInt } }
+    });
 
-        const updated = await prisma.pHITHUHO.update({
+    if (!currentData) throw { status: 404, message: "Không tìm thấy dữ liệu phí thu hộ" };
+
+    // 2. Tính toán lại tiền điện/nước nếu có thay đổi chỉ số
+    const soDien = data.TONGDIEN !== undefined ? parseFloat(data.TONGDIEN) : parseFloat(currentData.TONGDIEN || 0);
+    const donGiaDien = data.DONGIADIEN !== undefined ? parseFloat(data.DONGIADIEN) : parseFloat(currentData.DONGIADIEN || 0);
+    
+    const soNuoc = data.TONGNUOC !== undefined ? parseFloat(data.TONGNUOC) : parseFloat(currentData.TONGNUOC || 0);
+    const donGiaNuoc = data.DONGIANUOC !== undefined ? parseFloat(data.DONGIANUOC) : parseFloat(currentData.DONGIANUOC || 0);
+
+    const tienInternet = data.TIENINTERNET !== undefined ? parseFloat(data.TIENINTERNET) : parseFloat(currentData.THANHTIENINTERNET || 0);
+
+    const thanhTienDien = soDien * donGiaDien;
+    const thanhTienNuoc = soNuoc * donGiaNuoc;
+
+    // 3. Thực hiện Transaction để update cả 2 bảng
+    const result = await prisma.$transaction(async (tx) => {
+        // Update bảng chi tiết PHITHUHO
+        const updatedPhiThuHo = await tx.pHITHUHO.update({
             where: {
-                MADOTTHU_MAHOKHAU: {
-                    MADOTTHU: parseInt(maDotThu),
-                    MAHOKHAU: parseInt(maHoKhau)
-                }
+                MADOTTHU_MAHOKHAU: { MADOTTHU: maDotThuInt, MAHOKHAU: maHoKhauInt }
             },
-            data: parsedData
-        });
-        return { updated };
-    } catch (error) {
-        if (error.code === 'P2025') throw { status: 404, message: "Không tìm thấy bản ghi" };
-        throw { status: 500, message: error.message };
-    }
-};
+            data: {
+                TONGDIEN: soDien,
+                DONGIADIEN: donGiaDien,
+                TONGTIENDIEN: thanhTienDien,
+                
+                TONGNUOC: soNuoc,
+                DONGIANUOC: donGiaNuoc,
+                TONGTIENNUOC: thanhTienNuoc,
+                THANHTIENNUOC: thanhTienNuoc,
 
-// 4. Xóa
-const deletePhiThuHo = async (maDotThu, maHoKhau) => {
-    try {
-        const deleted = await prisma.pHITHUHO.delete({
-            where: {
-                MADOTTHU_MAHOKHAU: {
-                    MADOTTHU: parseInt(maDotThu),
-                    MAHOKHAU: parseInt(maHoKhau)
-                }
+                THANHTIENINTERNET: tienInternet // <--- Cập nhật tiền Internet
             }
         });
-        return { deleted };
-    } catch (error) {
-        if (error.code === 'P2025') throw { status: 404, message: "Không tìm thấy bản ghi" };
-        throw { status: 500, message: error.message };
-    }
+
+        // Update bảng tổng hợp DANHSACHTHUPHI để khớp số liệu
+        await tx.dANHSACHTHUPHI.update({
+            where: {
+                MADOTTHU_MAHOKHAU: { MADOTTHU: maDotThuInt, MAHOKHAU: maHoKhauInt }
+            },
+            data: {
+                SODIEN: soDien,
+                TIENDIEN: thanhTienDien,
+                SONUOC: soNuoc,
+                TIENNUOC: thanhTienNuoc,
+                TIENINTERNET: tienInternet, // <--- Đồng bộ sang bảng tổng
+                
+                // Nếu sửa tiền thì reset trạng thái về chưa đóng (để tránh trường hợp đóng rồi nhưng sửa bill tăng tiền)
+                TRANGTHAI: false 
+            }
+        });
+
+        return updatedPhiThuHo;
+    });
+
+    return result;
+
+  } catch (error) {
+    if (error.code === 'P2025') throw { status: 404, message: "Bản ghi không tồn tại" };
+    throw { status: 500, message: error.message };
+  }
 };
 
-module.exports = { 
-  createPhiThuHo,
-  getPhiThuHoList, 
-  updatePhiThuHo, 
-  deletePhiThuHo 
+module.exports = {
+  getAllPhiThuHo,
+  updatePhiThuHo
 };

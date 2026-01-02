@@ -1,142 +1,143 @@
 const { prisma } = require("../config/database");
 
-const contributionDataParse = (data) => {
+/**
+ * Lấy danh sách đóng góp (có phân trang & lọc)
+ */
+const getDongGops = async (filters, page = 1, limit = 10) => {
   try {
-    const parsed = { ...data };
+    const queryConditions = {};
 
-    // Parse số nguyên
-    if ("MADONGGOP" in parsed) parsed.MADONGGOP = parseInt(parsed.MADONGGOP, 10);
-    if ("MADOTTHU" in parsed && parsed.MADOTTHU) parsed.MADOTTHU = parseInt(parsed.MADOTTHU, 10);
-    if ("MAHOKHAU" in parsed && parsed.MAHOKHAU) parsed.MAHOKHAU = parseInt(parsed.MAHOKHAU, 10);
-    if ("MALOAIPHI" in parsed && parsed.MALOAIPHI) parsed.MALOAIPHI = parseInt(parsed.MALOAIPHI, 10);
-
-    // Parse ngày tháng
-    if ("NGAYDONG" in parsed && parsed.NGAYDONG) {
-      parsed.NGAYDONG = new Date(parsed.NGAYDONG);
+    // Lọc theo Mã đợt thu
+    if (filters.MADOTTHU) {
+      queryConditions.MADOTTHU = parseInt(filters.MADOTTHU);
     }
 
-    // Parse số thực (Tiền)
-    if ("SOTIENDADONG" in parsed) {
-      parsed.SOTIENDADONG = parseFloat(parsed.SOTIENDADONG);
+    // Lọc theo Mã hộ khẩu
+    if (filters.MAHOKHAU) {
+      queryConditions.MAHOKHAU = parseInt(filters.MAHOKHAU);
+    }
+    
+    // Lọc theo Mã loại phí (Quỹ)
+    if (filters.MALOAIPHI) {
+      queryConditions.MALOAIPHI = parseInt(filters.MALOAIPHI);
     }
 
-    return parsed;
-  } catch (error) {
-    throw { status: 500, message: error.message };
-  }
-};
-
-// 1. Tạo khoản đóng góp mới
-const createContribution = async (data) => {
-  try {
-    const newContribution = await prisma.dONGGOP.create({
-      data: contributionDataParse(data),
-    });
-    return { newContribution };
-  } catch (error) {
-    // Lỗi khóa ngoại (Ví dụ: ID đợt thu hoặc ID hộ khẩu không tồn tại)
-    if (error.code === 'P2003') {
-       throw { status: 400, message: 'Thông tin tham chiếu (Đợt thu/Hộ khẩu/Loại phí) không hợp lệ' };
-    }
-    throw { status: 500, message: error.message };
-  }
-};
-
-// 2. Lấy danh sách đóng góp (có lọc và phân trang)
-const getContributions = async (filters, page, limit) => {
-  try {
-    console.log(filters);
-    const parsedFilters = contributionDataParse(filters);
-
-    // Xử lý tìm kiếm theo tên chủ hộ (gần đúng)
-    if (parsedFilters.TENCHUHO) {
-        parsedFilters.TENCHUHO = { contains: parsedFilters.TENCHUHO, mode: 'insensitive' };
-    }
-
-    const contributions = await prisma.dONGGOP.findMany({
+    // Lọc tìm kiếm theo tên chủ hộ (nếu cần xử lý phức tạp hơn thì cần join, ở đây xử lý cơ bản)
+    
+    const dongGops = await prisma.dONGGOP.findMany({
       skip: (page - 1) * limit,
       take: limit,
-      where: parsedFilters,
+      where: queryConditions,
       include: {
-        DOTTHUPHI: { select: { TEN: true } }, // Lấy tên đợt thu
-        HOKHAU: { select: { MAPHONG: true } }, // Lấy mã phòng
-        LOAIPHI: { select: { TEN: true } }    // Lấy tên loại phí
+        DOTTHUPHI: {
+            select: { TEN: true } // Lấy tên đợt thu
+        },
+        HOKHAU: {
+            select: { 
+                MAPHONG: true, 
+                THONGTINCHUHO: {
+                    select: { HOTEN: true }
+                }
+            }
+        },
+        LOAIPHI: {
+            select: { TEN: true } // Lấy tên quỹ
+        }
       },
       orderBy: {
-        NGAYDONG: 'desc'
+        NGAYDONG: 'desc' 
       }
     });
 
     const count = await prisma.dONGGOP.count({
-      where: parsedFilters,
+      where: queryConditions,
     });
 
-    return { contributions, count };
+    return { dongGops, count };
   } catch (error) {
     throw { status: 500, message: error.message };
   }
 };
 
-// 3. Lấy chi tiết đóng góp theo ID
-const getContributionById = async (id) => {
+/**
+ * Tạo mới một khoản đóng góp
+ */
+const createDongGop = async (data) => {
   try {
-    const contribution = await prisma.dONGGOP.findUnique({
-      where: {
-        MADONGGOP: parseInt(id),
-      },
-      include: {
-        DOTTHUPHI: true,
-        HOKHAU: true,
-        LOAIPHI: true
-      }
-    });
-
-    if (!contribution) {
-        throw { status: 404, message: 'Không tìm thấy khoản đóng góp' };
+    // Validate dữ liệu cơ bản
+    if (!data.MAHOKHAU || !data.SOTIENDADONG) {
+        throw { status: 400, message: "Thiếu thông tin Hộ khẩu hoặc Số tiền" };
     }
 
-    return { contribution };
+    const newDongGop = await prisma.dONGGOP.create({
+      data: {
+        MADOTTHU: data.MADOTTHU ? parseInt(data.MADOTTHU) : null,
+        MAHOKHAU: parseInt(data.MAHOKHAU),
+        MALOAIPHI: data.MALOAIPHI ? parseInt(data.MALOAIPHI) : null,
+        SOTIENDADONG: parseFloat(data.SOTIENDADONG), // Decimal
+        NGAYDONG: data.NGAYDONG ? new Date(data.NGAYDONG) : new Date(),
+        HINHTHUC: data.HINHTHUC || "Tiền mặt",
+        GHICHU: data.GHICHU,
+        TRANGTHAI: true // Mặc định tạo xong là đã đóng
+      },
+    });
+    return newDongGop;
   } catch (error) {
-    if (error.code === 'P2025') throw { status: 404, message: 'Không tìm thấy khoản đóng góp' };
     throw { status: 500, message: error.message };
   }
 };
 
-// 4. Cập nhật khoản đóng góp
-const updateContribution = async (id, data) => {
+/**
+ * Cập nhật thông tin đóng góp
+ */
+const updateDongGop = async (id, data) => {
   try {
-    const updatedContribution = await prisma.dONGGOP.update({
+    // Parse dữ liệu nếu có gửi lên
+    const updateData = {};
+    if (data.SOTIENDADONG !== undefined) updateData.SOTIENDADONG = parseFloat(data.SOTIENDADONG);
+    if (data.HINHTHUC !== undefined) updateData.HINHTHUC = data.HINHTHUC;
+    if (data.GHICHU !== undefined) updateData.GHICHU = data.GHICHU;
+    if (data.NGAYDONG !== undefined) updateData.NGAYDONG = new Date(data.NGAYDONG);
+
+    const updated = await prisma.dONGGOP.update({
       where: {
         MADONGGOP: parseInt(id),
       },
-      data: contributionDataParse(data),
+      data: updateData,
     });
-    return { updatedContribution };
-  } catch (error) {
-    if (error.code === 'P2025') throw { status: 404, message: 'Không tìm thấy khoản đóng góp' };
+    return updated;
+  }
+  catch (error) {
+    if (error.code === 'P2025') {
+      throw { status: 404, message: 'Không tìm thấy phiếu đóng góp' };
+    }
     throw { status: 500, message: error.message };
   }
 };
 
-// 5. Xóa khoản đóng góp
-const deleteContribution = async (id) => {
+/**
+ * Xóa phiếu đóng góp
+ */
+const deleteDongGop = async (id) => {
   try {
-    const deletedContribution = await prisma.dONGGOP.delete({
+    await prisma.dONGGOP.delete({
       where: {
         MADONGGOP: parseInt(id),
       },
     });
-    return { deletedContribution };
+    return { message: 'Xóa phiếu đóng góp thành công' };
   } catch (error) {
-    if (error.code === 'P2025') throw { status: 404, message: 'Không tìm thấy khoản đóng góp' };
-    throw { status: 500, message: error.message };
+    if (error.code === 'P2025') {
+      throw { status: 404, message: 'Không tìm thấy phiếu đóng góp' };
+    } else {
+      throw { status: 500, message: error.message };
+    }
   }
 };
 
 module.exports = {
-  createContribution,
-  getContributions,
-  getContributionById,
-  updateContribution,
-  deleteContribution
+  getDongGops,
+  createDongGop,
+  updateDongGop,
+  deleteDongGop,
 };
