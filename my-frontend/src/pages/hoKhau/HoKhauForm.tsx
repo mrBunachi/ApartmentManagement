@@ -8,19 +8,29 @@ export default function HoKhauForm() {
 
   // State khớp với bảng HOKHAU
   const [formData, setFormData] = useState({
-    tenChuHo: '',
-    idChuHo: '', 
-    maPhong: '',
-    loaiCanHo: 'Cao cấp',
-    diaChi: '',
-    ghiChu: '',
-    xeMay: 0,
-    oTo: 0
+    IDCHUHO: '', 
+    MAPHONG: '',
+    LOAICANHO: 'Cao cấp',
+    DIACHI: '',
+    GHICHU: '',
+    XEMAY: 0,
+    OTO: 0
   });
 
   useEffect(() => {
     if (id) {
-      hoKhauService.getById(id).then((res: any) => setFormData(res.data || res));
+      const loadData = async () => {
+        try {
+          const res: any = await hoKhauService.getById(id);
+          // Backend trả về: { message, apartments: [single_item] }
+          const apartmentData = res.apartments?.[0] || res.apartment || res;
+          setFormData(apartmentData);
+        } catch (err) {
+          console.error(err);
+          alert('Không tải được thông tin hộ khẩu');
+        }
+      };
+      loadData();
     }
   }, [id]);
 
@@ -29,7 +39,7 @@ export default function HoKhauForm() {
     try {
       const payload = {
         ...formData,
-        idChuHo: formData.idChuHo ? parseInt(formData.idChuHo.toString()) : null
+        IDCHUHO: formData.IDCHUHO ? parseInt(formData.IDCHUHO.toString()) : null
       };
 
       if (id) await hoKhauService.update(id, payload);
@@ -54,38 +64,35 @@ export default function HoKhauForm() {
       {/* Tăng gap lên 15 cho thoáng */}
       <form onSubmit={handleSubmit} style={{ maxWidth: 500, display: 'flex', flexDirection: 'column', gap: 15 }}>
         
-        <label>Tên Chủ Hộ (*):</label>
-        <input name="tenChuHo" value={formData.tenChuHo} onChange={handleChange} required style={{ padding: 8 }} />
-
-        <label>ID Chủ Hộ (Nhập số ID nhân khẩu):</label>
-        <input name="idChuHo" type="number" value={formData.idChuHo} onChange={handleChange} required placeholder="Ví dụ: 10" style={{ padding: 8 }} />
+        <label>ID Chủ Hộ (Nhập số ID nhân khẩu) (*):</label>
+        <input name="IDCHUHO" type="number" value={formData.IDCHUHO} onChange={handleChange} required placeholder="Ví dụ: 10" style={{ padding: 8 }} />
 
         <label>Mã Phòng (*):</label>
-        <input name="maPhong" value={formData.maPhong} onChange={handleChange} required style={{ padding: 8 }} />
+        <input name="MAPHONG" value={formData.MAPHONG} onChange={handleChange} required style={{ padding: 8 }} />
 
         <label>Loại Căn Hộ:</label>
-        <select name="loaiCanHo" value={formData.loaiCanHo} onChange={handleChange} style={{ padding: 8 }}>
+        <select name="LOAICANHO" value={formData.LOAICANHO} onChange={handleChange} style={{ padding: 8 }}>
             <option value="Cao cấp">Cao cấp</option>
             <option value="Trung bình">Trung bình</option>
             <option value="Giá rẻ">Giá rẻ</option>
         </select>
 
         <label>Địa Chỉ:</label>
-        <input name="diaChi" value={formData.diaChi} onChange={handleChange} style={{ padding: 8 }} />
+        <input name="DIACHI" value={formData.DIACHI} onChange={handleChange} style={{ padding: 8 }} />
 
         <div style={{ display: 'flex', gap: 20 }}>
             <div style={{ flex: 1 }}>
                 <label>Số xe máy:</label><br/>
-                <input type="number" name="xeMay" value={formData.xeMay} onChange={handleChange} style={{ width: '100%', padding: 8, marginTop: 5 }} />
+                <input type="number" name="XEMAY" value={formData.XEMAY} onChange={handleChange} style={{ width: '100%', padding: 8, marginTop: 5 }} />
             </div>
             <div style={{ flex: 1 }}>
                 <label>Số ô tô:</label><br/>
-                <input type="number" name="oTo" value={formData.oTo} onChange={handleChange} style={{ width: '100%', padding: 8, marginTop: 5 }} />
+                <input type="number" name="OTO" value={formData.OTO} onChange={handleChange} style={{ width: '100%', padding: 8, marginTop: 5 }} />
             </div>
         </div>
 
         <label>Ghi chú:</label>
-        <textarea name="ghiChu" value={formData.ghiChu} onChange={handleChange} rows={3} style={{ padding: 8 }} />
+        <textarea name="GHICHU" value={formData.GHICHU} onChange={handleChange} rows={3} style={{ padding: 8 }} />
 
         {/* Nút bấm style chuẩn */}
         <div style={{ marginTop: 10 }}>

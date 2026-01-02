@@ -9,18 +9,22 @@ export default function DongGopList() {
   const loadData = async () => {
     try {
       const res: any = await dongGopService.getAll();
-      setRows(res.data || res);
-    } catch (err) { console.error(err); }
+      // Backend trả về: { message, data: [...], pagination: {...} }
+      setRows(res.data || []);
+    } catch (err) { 
+      console.error(err); 
+      setRows([]);
+    }
   };
 
   useEffect(() => { loadData(); }, []);
 
   const columns = [
-    { field: 'id', headerName: 'ID', width: 50 },
-    { field: 'tenDotThu', headerName: 'Đợt Thu', width: 200 }, // Backend cần join bảng để trả về tên
-    { field: 'tenChuHo', headerName: 'Người Đóng', width: 150 }, // Backend cần join bảng
-    { field: 'soTienDaDong', headerName: 'Số Tiền', width: 120 },
-    { field: 'ngayDong', headerName: 'Ngày Đóng', width: 150 },
+    { field: 'MADONGGOP', headerName: 'ID', width: 50 },
+    { field: 'MADOTTHU', headerName: 'Đợt Thu', width: 200 },
+    { field: 'MAHOKHAU', headerName: 'Mã HK', width: 150 },
+    { field: 'SOTIENDADONG', headerName: 'Số Tiền', width: 120 },
+    { field: 'NGAYDONG', headerName: 'Ngày Đóng', width: 150 },
   ];
 
   return (

@@ -9,8 +9,13 @@ export default function NhanKhauList() {
   const loadData = async () => {
     try {
       const res: any = await nhanKhauService.getAll();
-      setRows(res.data || res); 
-    } catch (err) { console.error(err); }
+      // Backend trả về: { message, residents: { residents: [...], count: X } }
+      const residentsList = res.residents?.residents || res.residents || [];
+      setRows(residentsList); 
+    } catch (err) { 
+      console.error(err); 
+      setRows([]);
+    }
   };
 
   useEffect(() => { loadData(); }, []);
@@ -22,16 +27,16 @@ export default function NhanKhauList() {
     }
   };
 
-  // Định nghĩa cột hiển thị theo cnpm.sql
+  // Định nghĩa cột hiển thị - Backend trả về UPPERCASE
   const columns = [
-    { field: 'id', headerName: 'ID', width: 50 }, // id maps với MANHANKHAU (tùy backend trả về tên gì)
-    { field: 'hoTen', headerName: 'Họ Tên', width: 150 },
-    { field: 'maHoKhau', headerName: 'Mã Hộ', width: 80 }, // Để biết ở căn nào
-    { field: 'quanHeVoiChuHo', headerName: 'Quan Hệ', width: 100 },
-    { field: 'soCanCuoc', headerName: 'CCCD', width: 120 },
-    { field: 'gioiTinh', headerName: 'Giới Tính', width: 80 },
-    { field: 'ngaySinh', headerName: 'Ngày Sinh', width: 100 },
-    { field: 'noiThuongTru', headerName: 'Thường Trú', width: 200 },
+    { field: 'MANHANKHAU', headerName: 'ID', width: 50 },
+    { field: 'HOTEN', headerName: 'Họ Tên', width: 150 },
+    { field: 'MAHOKHAU', headerName: 'Mã Hộ', width: 80 },
+    { field: 'QUANHEVOICHUHO', headerName: 'Quan Hệ', width: 100 },
+    { field: 'SOCANCUOC', headerName: 'CCCD', width: 120 },
+    { field: 'GIOITINH', headerName: 'Giới Tính', width: 80 },
+    { field: 'NGAYSINH', headerName: 'Ngày Sinh', width: 100 },
+    { field: 'NOITHUONGTRU', headerName: 'Thường Trú', width: 200 },
   ];
 
   return (

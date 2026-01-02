@@ -15,7 +15,17 @@ export default function DotThuPhiForm() {
 
   useEffect(() => {
     if (id) {
-      dotThuPhiService.getById(id).then((res: any) => setFormData(res.data || res));
+      const loadData = async () => {
+        try {
+          const res: any = await dotThuPhiService.getById(id);
+          // Backend trả về: { dotThuPhi: {...} }
+          setFormData(res.dotThuPhi || res);
+        } catch (err) {
+          console.error(err);
+          alert('Không tải được thông tin đợt thu phí');
+        }
+      };
+      loadData();
     }
   }, [id]);
 

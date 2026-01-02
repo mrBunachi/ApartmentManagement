@@ -9,8 +9,13 @@ export default function HoKhauList() {
   const loadData = async () => {
     try {
       const res: any = await hoKhauService.getAll();
-      setRows(res.data || res);
-    } catch (err) { console.error(err); }
+      // Backend trả về: { message, apartments: { apartments: [...], count: X } }
+      const apartmentsList = res.apartments?.apartments || res.apartments || [];
+      setRows(apartmentsList);
+    } catch (err) { 
+      console.error(err); 
+      setRows([]);
+    }
   };
 
   useEffect(() => { loadData(); }, []);
@@ -22,13 +27,14 @@ export default function HoKhauList() {
     }
   };
 
-  // Cấu hình cột theo bảng HOKHAU trong cnpm.sql
+  // Cấu hình cột - Backend trả về UPPERCASE
   const columns = [
-    { field: 'id', headerName: 'ID', width: 50 }, // Map với MAHOKHAU
-    { field: 'tenChuHo', headerName: 'Tên Chủ Hộ', width: 200 }, // TENCHUHO
-    { field: 'maPhong', headerName: 'Mã Phòng', width: 100 }, // MAPHONG
-    { field: 'loaiCanHo', headerName: 'Loại Căn Hộ', width: 150 }, // LOAICANHO
-    { field: 'diaChi', headerName: 'Địa Chỉ', width: 250 }, // DIACHI
+    { field: 'MAHOKHAU', headerName: 'ID', width: 50 },
+    { field: 'MAPHONG', headerName: 'Mã Phòng', width: 100 },
+    { field: 'LOAICANHO', headerName: 'Loại Căn Hộ', width: 150 },
+    { field: 'DIACHI', headerName: 'Địa Chỉ', width: 250 },
+    { field: 'XEMAY', headerName: 'Xe Máy', width: 80 },
+    { field: 'OTO', headerName: 'Ô Tô', width: 80 },
   ];
 
   return (

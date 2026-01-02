@@ -9,8 +9,13 @@ export default function DotThuPhiList() {
   const loadData = async () => {
     try {
       const res: any = await dotThuPhiService.getAll();
-      setRows(res.data || res);
-    } catch (err) { console.error(err); }
+      // Backend trả về: { dotThuPhi: { dotThuPhis: [...], count: X } }
+      const dotThuPhiList = res.dotThuPhi?.dotThuPhis || res.dotThuPhi || [];
+      setRows(dotThuPhiList);
+    } catch (err) { 
+      console.error(err); 
+      setRows([]);
+    }
   };
 
   useEffect(() => { loadData(); }, []);
@@ -33,7 +38,7 @@ export default function DotThuPhiList() {
   // Hàm custom để hiển thị Bắt buộc/Tự nguyện thay vì 1/0
   const processedRows = rows.map((r: any) => ({
       ...r,
-      batBuoc: r.batBuoc == 1 ? 'Bắt buộc' : 'Tự nguyện' // Logic theo cnpm.sql
+      BATBUOC: r.BATBUOC ? 'Bắt buộc' : 'Tự nguyện' // Boolean: true/false
   }));
 
   return (

@@ -1,8 +1,21 @@
 import { useAuth } from "../../hooks/useAuth";
+import axios from 'axios';
+import { API_URL } from '../../utils/constants';
 
 export default function Topbar() {
-  // Lấy thêm biến user để hiển thị tên
   const { user, logout } = useAuth();
+
+  const handleLogout = async () => {
+    try {
+      // Gọi API logout để xóa cookies
+      await axios.post(`${API_URL}/auth/logout`, {}, { withCredentials: true });
+    } catch (err) {
+      console.error('Logout error:', err);
+    } finally {
+      // Luôn gọi logout local dù API có lỗi
+      logout();
+    }
+  };
 
   return (
     <div style={{ 
@@ -12,27 +25,25 @@ export default function Topbar() {
       alignItems: 'center', 
       justifyContent: 'space-between',
       padding: '0 20px',
-      background: '#fff' // Đổi màu nền trắng cho sạch
+      background: '#fff'
     }}>
-      {/* Bên trái: Tên App */}
-      <h3 style={{ margin: 0, color: '#333' }}>Quản Lý Dân Cư</h3>
+      <h3 style={{ margin: 0, color: '#333' }}>Quản Lý Chung Cư</h3>
 
-      {/* Bên phải: Thông tin User & Nút Logout */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 15 }}>
         <span style={{ fontSize: 14 }}>
-          Xin chào, <b>{user?.hoTen || user?.username || 'Admin'}</b>
+          Xin chào, <b>{user?.name || user?.username || 'Admin'}</b>
         </span>
         
         <button 
-          onClick={logout} 
+          onClick={handleLogout} 
           style={{ 
-            padding: '5px 15px', 
-            background: '#dc3545', // Màu đỏ báo hiệu nút thoát
+            padding: '8px 16px', 
+            background: '#dc3545',
             color: 'white', 
             border: 'none', 
             borderRadius: 4,
             cursor: 'pointer',
-            fontWeight: 'bold'
+            fontWeight: 600
           }}
         >
           Đăng xuất

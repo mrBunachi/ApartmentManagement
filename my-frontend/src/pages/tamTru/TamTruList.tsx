@@ -7,16 +7,27 @@ export default function TamTruList() {
   const [rows, setRows] = useState([]);
 
   useEffect(() => {
-    tamTruService.getAll().then((res: any) => setRows(res.data || res)).catch(console.error);
+    const loadData = async () => {
+      try {
+        const res: any = await tamTruService.getAll();
+        // Backend trả về: { message, data: { tamTrus: [...], count: X } }
+        const tamTruList = res.data?.tamTrus || res.data || [];
+        setRows(tamTruList);
+      } catch (err) {
+        console.error(err);
+        setRows([]);
+      }
+    };
+    loadData();
   }, []);
 
   const columns = [
-    { field: 'id', headerName: 'ID ĐK', width: 60 },
-    { field: 'maNhanKhau', headerName: 'Mã NK', width: 80 }, // ID người đăng ký
-    { field: 'soDienThoaiNguoiDangKy', headerName: 'SĐT', width: 120 },
-    { field: 'tuNgay', headerName: 'Từ Ngày', width: 120 },
-    { field: 'denNgay', headerName: 'Đến Ngày', width: 120 },
-    { field: 'lyDo', headerName: 'Lý Do', width: 200 },
+    { field: 'MADANGKYTAMTRU', headerName: 'ID ĐK', width: 60 },
+    { field: 'MANHANKHAU', headerName: 'Mã NK', width: 80 },
+    { field: 'SODIENTHOAINGUOIDANGKY', headerName: 'SĐT', width: 120 },
+    { field: 'TUNGAY', headerName: 'Từ Ngày', width: 120 },
+    { field: 'DENNGAY', headerName: 'Đến Ngày', width: 120 },
+    { field: 'LYDO', headerName: 'Lý Do', width: 200 },
   ];
 
   return (
