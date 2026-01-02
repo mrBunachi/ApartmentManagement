@@ -71,6 +71,8 @@ model DOTTHUPHI {
 model PHITHUHO {
   MADOTTHU          Int
   MAHOKHAU          Int
+  DONGIADIEN        Decimal?  @db.Decimal(18, 2)
+  DONGIANUOC        Decimal?  @db.Decimal(18, 2)
   TONGDIEN          Decimal?  @db.Decimal(18, 2)
   TONGTIENDIEN      Decimal?  @db.Decimal(18, 2)
   TONGNUOC          Decimal?  @db.Decimal(18, 2)

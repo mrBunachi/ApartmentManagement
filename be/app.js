@@ -19,15 +19,13 @@ const tamTruRoutes = require("./routes/tamTruRoute")
 const tamVangRoutes = require("./routes/tamVangRoute")
 const lichsuRoutes = require("./routes/lichsuRoute")
 const vnpayRoutes = require("./routes/vnpayRoute")
+const billRoutes = require("./routes/billRoute")
 
 const app = express();
 
-// CORS config - cho phép frontend gọi API
 app.use(cors({
-    origin: process.env.FRONT_URI || 'http://localhost:5174',
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    origin: process.env.FRONT_URI,
+    credentials: true
 }));
 
 
@@ -50,6 +48,7 @@ app.use("/tam-tru", tamTruRoutes)
 app.use("/tam-vang",tamVangRoutes)
 app.use("/lich-su",lichsuRoutes)
 app.use("/vnpay",vnpayRoutes)
+app.use("/bill", billRoutes)
 // Swagger UI
 swaggerSetup(app);
 
