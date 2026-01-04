@@ -2,8 +2,9 @@ vnpay_S = require("../services/vnPayServices")
 
 const createUrlController = async (req, res) => {
     try {
-        const { amount, des, id_order } = req.body;
-        // id_order theo dangj "madotthu-mahokhau-loaiphi" (0 là bắt buộc 1 là k bắt buộc)
+        const { amount, des, id_order, identifier } = req.body;
+        // id_order theo dang "madotthu-mahokhau-loaiphi" (0 là bắt buộc 1 là tự nguyện)
+        // identifier: số căn cước của cư dân để redirect về đúng trang
 
         // Kiểm tra sơ bộ nếu thiếu dữ liệu quan trọng
         if (!amount || !id_order) {
@@ -13,8 +14,8 @@ const createUrlController = async (req, res) => {
         // Lấy IP người dùng để truyền vào vnpay
         const ipAddr = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
 
-        // Gọi hàm service đã import bằng dấu { } ở trên
-        const paymentUrl = await vnpay_S.create_url(amount, des, id_order, ipAddr);
+        // Gọi hàm service với identifier
+        const paymentUrl = await vnpay_S.create_url(amount, des, id_order, ipAddr, identifier);
         
         return res.status(201).json({
             message: "Tạo url thành công",
@@ -28,29 +29,25 @@ const createUrlController = async (req, res) => {
     }
 };
 
-const handleCallback = async (req, res) => { // Sửa tên hàm cho chuẩn
+const handleCallback = async (req, res) => {
     try {
         const callback_mess = req.query; // VNPAY trả về params qua URL (GET) nên dùng query
         
         // Gọi hàm service và chờ kết quả
         const result = await vnpay_S.handle_Callback(callback_mess); 
         
-        if (result.status == "success"){
-
-        }
-        else if(result.status == "fail"){
-
-        }
-        else if(result.status == 'error'){
-
-        }
-        return res.status(200).json(result); 
+        // Lấy identifier (số căn cước) từ query params nếu có
+        const identifier = req.query.identifier || '';
+        
+        // Redirect về frontend với kết quả
+        const frontendUrl = process.env.FRONT_URI || 'http://localhost:5173';
+        const redirectUrl = `${frontendUrl}/resident/dashboard?id=${identifier}&payment=${result.status}&code=${result.code}&message=${encodeURIComponent(result.message)}`;
+        
+        return res.redirect(redirectUrl);
 
     } catch (error) {
-        return res.status(500).json({
-            message: "Lỗi khi xử lý callback",
-            error: error.message
-        });
+        const frontendUrl = process.env.FRONT_URI || 'http://localhost:5173';
+        return res.redirect(`${frontendUrl}/resident/dashboard?payment=error&message=${encodeURIComponent('Lỗi xử lý thanh toán')}`);
     }
 }
 

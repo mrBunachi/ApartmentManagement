@@ -242,9 +242,199 @@ const getUnpaidFeeListByHousehold = async (maHoKhau) => {
   }
 };
 
+const getUnpaidFeesByPhone = async (soDienThoai) => {
+  try {
+    // 1. Tìm hộ khẩu theo số điện thoại chủ hộ
+    const household = await prisma.hOKHAU.findFirst({
+      where: {
+        THONGTINCHUHO: {
+          SODIENTHOAI: soDienThoai
+        }
+      },
+      include: {
+        THONGTINCHUHO: {
+          select: {
+            HOTEN: true,
+            SODIENTHOAI: true
+          }
+        }
+      }
+    });
+
+    if (!household) {
+      throw { status: 404, message: "Không tìm thấy hộ khẩu với số điện thoại này" };
+    }
+
+    // 2. Lấy danh sách phí chưa đóng (hoặc đóng chưa đủ)
+    const unpaidFees = await prisma.dANHSACHTHUPHI.findMany({
+      where: {
+        MAHOKHAU: household.MAHOKHAU,
+        OR: [
+          { TRANGTHAI: false }, // Chưa đóng
+          {
+            AND: [
+              { TRANGTHAI: true },
+              {
+                SOTIENDADONG: {
+                  lt: prisma.dANHSACHTHUPHI.fields.TIENNHA.add(
+                    prisma.dANHSACHTHUPHI.fields.TIENDICHVU,
+                    prisma.dANHSACHTHUPHI.fields.TIENDIEN,
+                    prisma.dANHSACHTHUPHI.fields.TIENNUOC
+                  )
+                }
+              }
+            ]
+          }
+        ]
+      },
+      include: {
+        DOTTHUPHI: {
+          select: {
+            MADOTTHU: true,
+            TEN: true,
+            BATBUOC: true,
+            NGAYTAO: true,
+            MOTA: true
+          }
+        }
+      },
+      orderBy: {
+        DOTTHUPHI: {
+          NGAYTAO: 'desc'
+        }
+      }
+    });
+
+    return {
+      household: {
+        MAHOKHAU: household.MAHOKHAU,
+        TENPHONG: household.MAPHONG,
+        CHUHO: household.THONGTINCHUHO?.HOTEN,
+        SODIENTHOAI: household.THONGTINCHUHO?.SODIENTHOAI
+      },
+      fees: unpaidFees
+    };
+
+  } catch (error) {
+    throw { status: error.status || 500, message: error.message };
+  }
+};
+
+const getUnpaidFeesByIdentifier = async (identifier) => {
+  try {
+    // 1. Tìm nhân khẩu (chủ hộ) theo số căn cước
+    const resident = await prisma.nHANKHAU.findFirst({
+      where: {
+        SOCANCUOC: identifier
+      }
+    });
+
+    if (!resident) {
+      throw { status: 404, message: "Không tìm thấy thông tin với số căn cước này" };
+    }
+
+    // 2. Tìm hộ khẩu mà nhân khẩu này là chủ hộ
+    const household = await prisma.hOKHAU.findFirst({
+      where: {
+        IDCHUHO: resident.MANHANKHAU
+      },
+      include: {
+        THONGTINCHUHO: {
+          select: {
+            HOTEN: true,
+            SOCANCUOC: true
+          }
+        }
+      }
+    });
+
+    if (!household) {
+      throw { status: 404, message: "Không tìm thấy hộ khẩu. Bạn có thể chưa là chủ hộ." };
+    }
+
+    // 2. Lấy phí bắt buộc chưa đóng (DANHSACHTHUPHI)
+    const unpaidMandatoryFees = await prisma.dANHSACHTHUPHI.findMany({
+      where: {
+        MAHOKHAU: household.MAHOKHAU,
+        TRANGTHAI: false
+      },
+      include: {
+        DOTTHUPHI: {
+          select: {
+            MADOTTHU: true,
+            TEN: true,
+            BATBUOC: true,
+            NGAYTAO: true,
+            MOTA: true
+          }
+        }
+      }
+    });
+
+    // 3. Lấy đợt đóng góp tự nguyện chưa đóng (DONGGOP)
+    // Tìm các đợt tự nguyện chưa có bản ghi trong DONGGOP
+    const allVoluntaryPeriods = await prisma.dOTTHUPHI.findMany({
+      where: { BATBUOC: false },
+      select: {
+        MADOTTHU: true,
+        TEN: true,
+        BATBUOC: true,
+        NGAYTAO: true,
+        MOTA: true
+      }
+    });
+
+    const paidVoluntaryIds = await prisma.dONGGOP.findMany({
+      where: {
+        MAHOKHAU: household.MAHOKHAU,
+        TRANGTHAI: true
+      },
+      select: { MADOTTHU: true }
+    });
+
+    const paidIds = new Set(paidVoluntaryIds.map(d => d.MADOTTHU));
+    const unpaidVoluntaryPeriods = allVoluntaryPeriods.filter(
+      period => !paidIds.has(period.MADOTTHU)
+    );
+
+    // Chuyển sang format giống DANHSACHTHUPHI để frontend dễ xử lý
+    const unpaidVoluntaryFees = unpaidVoluntaryPeriods.map(period => ({
+      MADOTTHU: period.MADOTTHU,
+      MAHOKHAU: household.MAHOKHAU,
+      TIENNHA: 0,
+      TIENDICHVU: 0,
+      TIENDIEN: 0,
+      TIENNUOC: 0,
+      TRANGTHAI: false,
+      SOTIENDADONG: 0,
+      DOTTHUPHI: period
+    }));
+
+    // Gộp tất cả phí và sắp xếp theo ngày
+    const allFees = [...unpaidMandatoryFees, ...unpaidVoluntaryFees].sort((a, b) => 
+      new Date(b.DOTTHUPHI.NGAYTAO) - new Date(a.DOTTHUPHI.NGAYTAO)
+    );
+
+    return {
+      household: {
+        MAHOKHAU: household.MAHOKHAU,
+        TENPHONG: household.MAPHONG,
+        CHUHO: household.THONGTINCHUHO?.HOTEN,
+        SODIENTHOAI: household.THONGTINCHUHO?.SODIENTHOAI
+      },
+      fees: allFees
+    };
+
+  } catch (error) {
+    throw { status: error.status || 500, message: error.message };
+  }
+};
+
 module.exports = {
   getFeeListByDotThu,
   getFeeDetail,
   updatePaymentStatus,
-  getUnpaidFeeListByHousehold
+  getUnpaidFeeListByHousehold,
+  getUnpaidFeesByPhone,
+  getUnpaidFeesByIdentifier
 };

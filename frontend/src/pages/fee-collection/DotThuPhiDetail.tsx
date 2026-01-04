@@ -94,7 +94,6 @@ const DotThuPhiDetail = () => {
 
     const totalAmount = data.reduce((sum, item) => {
       const amount = 
-        (parseFloat(String(item.TIENNHA || 0))) +
         (parseFloat(String(item.TIENDICHVU || 0))) +
         (parseFloat(String(item.TIENXEMAY || 0))) +
         (parseFloat(String(item.TIENOTO || 0))) +
@@ -114,7 +113,6 @@ const DotThuPhiDetail = () => {
   const openPaymentModal = (bill: FeeListItem) => {
     setSelectedBill(bill);
     const totalBill = 
-      (parseFloat(String(bill.TIENNHA || 0))) +
       (parseFloat(String(bill.TIENDICHVU || 0))) +
       (parseFloat(String(bill.TIENXEMAY || 0))) +
       (parseFloat(String(bill.TIENOTO || 0))) +
@@ -279,7 +277,6 @@ const DotThuPhiDetail = () => {
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Phòng</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Chủ hộ</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Tiền nhà</th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Dịch vụ</th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Điện</th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Nước</th>
@@ -291,7 +288,6 @@ const DotThuPhiDetail = () => {
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredFeeList.map((item) => {
                   const total = 
-                    (parseFloat(String(item.TIENNHA || 0))) +
                     (parseFloat(String(item.TIENDICHVU || 0))) +
                     (parseFloat(String(item.TIENXEMAY || 0))) +
                     (parseFloat(String(item.TIENOTO || 0))) +
@@ -306,9 +302,6 @@ const DotThuPhiDetail = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {item.HOKHAU?.THONGTINCHUHO?.HOTEN || 'N/A'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900">
-                        {formatCurrency(item.TIENNHA)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900">
                         {formatCurrency(item.TIENDICHVU)}

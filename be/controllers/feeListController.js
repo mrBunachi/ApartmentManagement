@@ -56,9 +56,45 @@ const getUnpaidFeeListByHousehold = async (req, res) => {
     }
 };
 
+const getUnpaidFeesByPhone = async (req, res) => {
+    try {
+        const { sodienthoai } = req.params;
+        if (!sodienthoai) {
+            return res.status(400).json({ message: "Thiếu số điện thoại" });
+        }
+
+        const result = await feeListServices.getUnpaidFeesByPhone(sodienthoai);
+        res.status(200).json({ 
+            message: "Lấy danh sách khoản chưa đóng thành công",
+            data: result 
+        });
+    } catch (error) {
+        res.status(error.status || 500).json({ message: error.message || "Lỗi hệ thống" });
+    }
+};
+
+const getUnpaidFeesByIdentifier = async (req, res) => {
+    try {
+        const { identifier } = req.params;
+        if (!identifier) {
+            return res.status(400).json({ message: "Thiếu thông tin tra cứu" });
+        }
+
+        const result = await feeListServices.getUnpaidFeesByIdentifier(identifier);
+        res.status(200).json({ 
+            message: "Lấy danh sách khoản chưa đóng thành công",
+            data: result 
+        });
+    } catch (error) {
+        res.status(error.status || 500).json({ message: error.message || "Lỗi hệ thống" });
+    }
+};
+
 module.exports = {
     getFeeListByDotThu,
     getFeeDetail,
     updatePayment,
     getUnpaidFeeListByHousehold,
+    getUnpaidFeesByPhone,
+    getUnpaidFeesByIdentifier,
 };

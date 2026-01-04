@@ -17,6 +17,8 @@ import TamTruManagement from './pages/temporary-residence/TamTruManagement';
 import TamVangManagement from './pages/temporary-absence/TamVangManagement';
 import DotThuPhiManagement from './pages/fee-collection/DotThuPhiManagement';
 import DotThuPhiDetail from './pages/fee-collection/DotThuPhiDetail';
+import ResidentLogin from './pages/resident-portal/ResidentLogin';
+import ResidentDashboard from './pages/resident-portal/ResidentDashboard';
 
 function App() {
   return (
@@ -25,6 +27,11 @@ function App() {
         <Toaster position="top-right" />
         <Routes>
           <Route path="/login" element={<Login />} />
+          
+          {/* Resident Portal Routes */}
+          <Route path="/resident/login" element={<ResidentLogin />} />
+          <Route path="/resident/dashboard" element={<ResidentDashboard />} />
+          
           <Route
             path="/*"
             element={

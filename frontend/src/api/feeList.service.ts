@@ -125,6 +125,28 @@ export const feeListService = {
     console.log(`🟢 [Response] GET /dong-gop:`, response);
     return response;
   },
+
+  /**
+   * GET /danh-sach-thu-phi/chuho/:sodienthoai
+   * Lấy danh sách phí chưa đóng theo số điện thoại chủ hộ
+   */
+  getUnpaidFeesByPhone: async (phoneNumber: string): Promise<{ data: any }> => {
+    console.log(`🔵 [Request] GET /danh-sach-thu-phi/chuho/${phoneNumber}`);
+    const response = await request.get(`/danh-sach-thu-phi/chuho/${phoneNumber}`);
+    console.log(`🟢 [Response] GET /danh-sach-thu-phi/chuho/${phoneNumber}:`, response);
+    return response;
+  },
+
+  /**
+   * GET /danh-sach-thu-phi/cudan/:identifier
+   * Lấy danh sách phí chưa đóng theo số điện thoại hoặc số căn cước
+   */
+  getUnpaidFeesByIdentifier: async (identifier: string): Promise<{ data: any }> => {
+    console.log(`🔵 [Request] GET /danh-sach-thu-phi/cudan/${identifier}`);
+    const response = await request.get(`/danh-sach-thu-phi/cudan/${identifier}`);
+    console.log(`🟢 [Response] GET /danh-sach-thu-phi/cudan/${identifier}:`, response);
+    return response;
+  },
 };
 
 export default feeListService;

@@ -31,6 +31,44 @@ router.get('/ho-khau/:mahokhau', feeListController.getUnpaidFeeListByHousehold);
 
 /**
  * @swagger
+ * /danh-sach-thu-phi/chuho/{sodienthoai}:
+ *   get:
+ *     summary: Lấy danh sách phí chưa đóng theo số điện thoại chủ hộ (dành cho cư dân)
+ *     tags: [DanhSachThuPhi]
+ *     parameters:
+ *       - in: path
+ *         name: sodienthoai
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Số điện thoại chủ hộ
+ *     responses:
+ *       200:
+ *         description: Thông tin hộ khẩu và danh sách phí chưa đóng
+ */
+router.get('/chuho/:sodienthoai', feeListController.getUnpaidFeesByPhone);
+
+/**
+ * @swagger
+ * /danh-sach-thu-phi/cudan/{identifier}:
+ *   get:
+ *     summary: Lấy danh sách phí chưa đóng theo số điện thoại hoặc căn cước (dành cho cư dân)
+ *     tags: [DanhSachThuPhi]
+ *     parameters:
+ *       - in: path
+ *         name: identifier
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Số điện thoại hoặc số căn cước chủ hộ
+ *     responses:
+ *       200:
+ *         description: Thông tin hộ khẩu và danh sách phí chưa đóng
+ */
+router.get('/cudan/:identifier', feeListController.getUnpaidFeesByIdentifier);
+
+/**
+ * @swagger
  * /danh-sach-thu-phi/{madotthu}:
  *   get:
  *     summary: Lấy danh sách các hộ cần đóng phí trong đợt này
