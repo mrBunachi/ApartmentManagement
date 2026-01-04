@@ -1,4 +1,5 @@
 const {prisma} = require("../config/database")
+const bcrypt = require("bcryptjs")
 
 // model NGUOIQUANLY {
 //   id          Int     @id @default(autoincrement())
@@ -82,6 +83,12 @@ const getUserById = async (id) => {
 
 const updateUser = async(id, updateData) => {
     try{
+        // Hash mật khẩu nếu có trong updateData
+        if (updateData.MATKHAU) {
+            const salt = await bcrypt.genSalt(10);
+            updateData.MATKHAU = await bcrypt.hash(updateData.MATKHAU, salt);
+        }
+        
         const where = {
                 id:parseInt(id)
         }
@@ -105,18 +112,41 @@ const deleteUser = async (id) => {
         const where = {
             id:parseInt(id)
         }
-        console.log(id)
-        const deleteUser =await prisma.nGUOIQUANLY.delete({
+        
+        // Kiểm tra xem user có đợt thu phí nào không
+        const userWithRelations = await prisma.nGUOIQUANLY.findUnique({
+            where,
+            include: {
+                DOTTHUPHIs: true
+            }
+        });
+        
+        if (!userWithRelations) {
+            throw { status: 404, message: 'User not found' }
+        }
+        
+        if (userWithRelations.DOTTHUPHIs && userWithRelations.DOTTHUPHIs.length > 0) {
+            throw { 
+                status: 400, 
+                message: `Không thể xóa user này vì đã tạo ${userWithRelations.DOTTHUPHIs.length} đợt thu phí. Vui lòng xóa các đợt thu liên quan trước.` 
+            }
+        }
+        
+        const deleteUser = await prisma.nGUOIQUANLY.delete({
             where
         })
         return {deleteUser};
 
     }
     catch(error){
-        if (error.code === 'P2025') { // Prisma not found error
+        if (error.code === 'P2025') {
             throw { status: 404, message: 'User not found' }
         }
-            throw { status: 500, message: error.message }
+        // Nếu đã có custom error message thì throw nguyên xi
+        if (error.status && error.message) {
+            throw error;
+        }
+        throw { status: 500, message: error.message }
     }
 };
 

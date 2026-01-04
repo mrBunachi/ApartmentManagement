@@ -212,26 +212,60 @@ const updateResident = async (id, data) => {
     }
 }
 
-const getResidents = async (data, page=1, limit = 10,include = false) => {
+const getResidents = async (data, page=1, limit = 10, include = false) => {
     try{
-        const residents =  await prisma.nHANKHAU.findMany({
+        // Build where clause with search support
+        const whereClause = {};
+        const parsedData = resDataParse(data);
+        
+        // Handle search fields
+        if (parsedData.HOTEN) {
+            // Search by name (contains)
+            whereClause.HOTEN = {
+                contains: parsedData.HOTEN,
+                mode: 'insensitive'
+            };
+        }
+        
+        if (parsedData.SOCANCUOC) {
+            // Exact match for ID card
+            whereClause.SOCANCUOC = parsedData.SOCANCUOC;
+        }
+        
+        if (parsedData.NGAYSINH) {
+            // Exact match for birth date
+            whereClause.NGAYSINH = parsedData.NGAYSINH;
+        }
+        
+        // Copy other filter fields
+        Object.keys(parsedData).forEach(key => {
+            if (!['HOTEN', 'SOCANCUOC', 'NGAYSINH', 'page', 'limit', 'include'].includes(key)) {
+                whereClause[key] = parsedData[key];
+            }
+        });
+        
+        const residents = await prisma.nHANKHAU.findMany({
             skip: (page - 1) * limit,
             take: limit,
-            where:resDataParse(data),
-            include:include ? {
-                    HOKHAU:{
-                        select:{
-                            MAHOKHAU:true,
-                            MAPHONG:true,
-                        }
+            where: whereClause,
+            include: include ? {
+                HOKHAU: {
+                    select: {
+                        MAHOKHAU: true,
+                        MAPHONG: true,
+                        DIACHI: true,
+                        LOAICANHO: true
                     }
-                } : undefined
-        })
-        const count = await prisma.nHANKHAU.count({
-                where:resDataParse(data),
-                
-            })
+                }
+            } : undefined,
+            orderBy: {
+                MANHANKHAU: 'desc'
+            }
+        });
         
+        const count = await prisma.nHANKHAU.count({
+            where: whereClause
+        });
 
         return {residents, count}
     } catch (error) {

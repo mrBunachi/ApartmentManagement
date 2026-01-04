@@ -1,5 +1,6 @@
 const express = require('express');
 const { register, login, refresh, logout } = require('../controllers/authController');
+const { verifyUser, verifyRole } = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
@@ -61,8 +62,10 @@ const router = express.Router();
  *               properties:
  *                 error:
  *                   type: string
+ *     security:
+ *       - cookieAuth: []
  */
-router.post('/register', register); // Đăng ký
+router.post('/register', verifyUser, verifyRole("admin_1"), register); // Đăng ký (chỉ admin_1)
 
 /**
  * @swagger

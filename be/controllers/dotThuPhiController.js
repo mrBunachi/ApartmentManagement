@@ -5,6 +5,11 @@ const getAllDotThuPhi = async (req, res) => {
         const filters = { ...req.query };
         const page = parseInt(filters.page) || 1;
         const limit = parseInt(filters.limit) || 20;
+        
+        // Xóa page và limit khỏi filters trước khi truyền vào service
+        delete filters.page;
+        delete filters.limit;
+        
         const dotThuPhiList = await dotThuPhiServices.getDotThuPhis(filters, page, limit);
         res.status(200).json({ dotThuPhi: dotThuPhiList });
     }

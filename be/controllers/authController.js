@@ -8,11 +8,11 @@ const ACCESS_SECRET = process.env.JWT_SECRET;
 const REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
 
 function generateAccessToken(id) {
-    return jwt.sign({ id }, ACCESS_SECRET, { expiresIn: '15m' });
+    return jwt.sign({ id }, ACCESS_SECRET, { expiresIn: '2h' });
 }
 
 function generateRefreshToken(id) {
-    return jwt.sign({ id }, REFRESH_SECRET, { expiresIn: '6h' })
+    return jwt.sign({ id }, REFRESH_SECRET, { expiresIn: '7d' })
 }
 
 const register =async (req, res) => {
@@ -49,8 +49,37 @@ const login = async (req, res) => {
         });
 
         if (!user) return res.status(400).json({ error: "User not found" });
-        const isMatch = await bcrypt.compare(password, user.MATKHAU);
+        
+        // Check cả mật khẩu đã hash VÀ plain text (cho dữ liệu cũ)
+        let isMatch = false;
+        
+        // Thử so sánh với bcrypt (mật khẩu đã hash)
+        try {
+            isMatch = await bcrypt.compare(password, user.MATKHAU);
+        } catch (err) {
+            // Nếu MATKHAU không phải bcrypt hash, bcrypt.compare sẽ lỗi
+            isMatch = false;
+        }
+        
+        // Nếu không match với bcrypt, thử so sánh plain text
+        if (!isMatch) {
+            isMatch = password === user.MATKHAU;
+            
+            // Nếu match với plain text, hash lại và cập nhật database
+            if (isMatch) {
+                console.log(`⚠️ User ${user.TENDANGNHAP} đang dùng plain text password. Auto-hashing...`);
+                const salt = await bcrypt.genSalt(10);
+                const hashedPassword = await bcrypt.hash(password, salt);
+                await prisma.nGUOIQUANLY.update({
+                    where: { id: user.id },
+                    data: { MATKHAU: hashedPassword }
+                });
+                console.log(`✅ Password đã được hash cho user ${user.TENDANGNHAP}`);
+            }
+        }
+        
         if (!isMatch) return res.status(400).json({ error: "Invalid credentials" });
+        
         const accessToken = generateAccessToken(user.id);
         console.log(accessToken);
         const refreshToken = generateRefreshToken(user.id);
@@ -63,7 +92,7 @@ const login = async (req, res) => {
             httpOnly: true,
             secure: true,
             sameSite: "None",
-            maxAge: 6 * 60 * 60 * 1000
+            maxAge: 7 * 24 * 60 * 60 * 1000
         })
         res.status(200).json({ message: 'Login successful' });
     } catch (err) {

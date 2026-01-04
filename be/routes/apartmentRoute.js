@@ -14,6 +14,9 @@ router.post("/", apartmentController.createApartmentController);
 // Cập nhật thông tin căn hộ
 router.put("/:id", apartmentController.updateApartmentController);
 
+// Cập nhật chủ hộ (gán chủ hộ cho hộ khẩu chưa có chủ)
+router.put("/:id/chu-ho", apartmentController.updateHouseholdHeadController);
+
 // Xóa căn hộ
 router.delete("/:id", apartmentController.deleteApartmentController);
 

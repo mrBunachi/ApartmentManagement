@@ -61,7 +61,6 @@ const chuyenHoKhau = async (idHoKhau, idChuHoMoi) => {
 // 1. Tạo mới hộ khẩu
 const createApartment = async (data) => {
   try {
-    let newApartment
     // Lưu ý: IDCHUHO bắt buộc phải tồn tại trong bảng NHANKHAU trước
     if (data.IDCHUHO){
       const idchuho = parseInt(data.IDCHUHO)
@@ -71,16 +70,12 @@ const createApartment = async (data) => {
       if (!owner){
         throw { status: 400, message: 'Chủ hộ không tồn tại hoặc chưa được kích hoạt' };
       }
-      const result = await prisma.hOKHAU.create({data: apartmentDataParse(data)});
-       
-      newApartment = result
+    }
 
-    }
-    else{
-      newApartment = await prisma.hOKHAU.create({
+    // Tạo hộ khẩu (không cần lưu lịch sử TAO_HO_KHAU)
+    const newApartment = await prisma.hOKHAU.create({
       data: apartmentDataParse(data)
-    })
-    }
+    });
     
     return { newApartment }
   } catch (error) {
@@ -145,10 +140,11 @@ const deleteApartment = async (id) => {
       if(nhankhauList.length > 0){
         const historyData = nhankhauList.map((person) => ({
         MANHANKHAU: person.MANHANKHAU,
-        MAHOKHAU: hokhau,              
+        MAHOKHAU: hokhau,
+        MAPHONG: apt.MAPHONG,
         LOAITHAYDOI: 'XOA_HO_KHAU',   
         CHUCVU_CU: person.QUANHEVOICHUHO,
-        GHI_CHU: 'Hộ khẩu bị xóa',
+        GHI_CHU: `Hộ khẩu bị xóa - Phòng ${apt.MAPHONG}`,
         NGAYBATDAU:apt.NGAYTAO,
         NGAYKETTHUC: new Date()   
       }))
@@ -226,10 +222,51 @@ const getApartments = async (data, page = 1, limit = 10,include=false) => {
   }
 }
 
+// 6. Cập nhật chủ hộ (chỉ cho hộ khẩu chưa có chủ)
+const updateHouseholdHead = async (id, idChuHo) => {
+  try {
+    const householdId = parseInt(id);
+    const headId = parseInt(idChuHo);
+
+    // Kiểm tra hộ khẩu tồn tại và chưa có chủ
+    const household = await prisma.hOKHAU.findFirst({
+      where: { MAHOKHAU: householdId, ACTIVATE: true }
+    });
+
+    if (!household) {
+      throw { status: 404, message: 'Hộ khẩu không tồn tại hoặc đã bị xóa' };
+    }
+
+    if (household.IDCHUHO !== null) {
+      throw { status: 400, message: 'Hộ khẩu đã có chủ hộ. Để thay đổi chủ hộ, vui lòng xóa hộ khẩu và tạo mới' };
+    }
+
+    // Kiểm tra người được chọn làm chủ hộ
+    const newHead = await prisma.nHANKHAU.findFirst({
+      where: { MANHANKHAU: headId, ACTIVATE: true }
+    });
+
+    if (!newHead) {
+      throw { status: 404, message: 'Người được chọn không tồn tại hoặc chưa được kích hoạt' };
+    }
+
+    // Cập nhật chủ hộ
+    const apartment = await prisma.hOKHAU.update({
+      where: { MAHOKHAU: householdId },
+      data: { IDCHUHO: headId }
+    });
+
+    return { apartment };
+  } catch (error) {
+    throw error;
+  }
+};
+
 module.exports = {
   createApartment,
   getApartmentById,
   deleteApartment,
   updateApartment,
-  getApartments
+  getApartments,
+  updateHouseholdHead,
 }

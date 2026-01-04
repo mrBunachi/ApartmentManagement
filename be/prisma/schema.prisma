@@ -190,7 +190,8 @@ model LICHSU_CUTRU {
   ID          Int      @id @default(autoincrement())
   MANHANKHAU  Int
   MAHOKHAU    Int? // Vẫn lưu ID hộ khẩu cũ để tham chiếu
-  LOAITHAYDOI String? // Enum: "XOA_HO_KHAU", "CHUYEN_DI", "TACH_KHAU"
+  MAPHONG     String? // Lưu mã phòng để dễ tra cứu/sort
+  LOAITHAYDOI String? // Enum: "XOA_HO_KHAU", "CHUYEN_DI", "TACH_KHAU", "TAO_HO_KHAU"
   NGAYBATDAU  DateTime
   NGAYKETTHUC DateTime @default(now())
 

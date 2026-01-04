@@ -33,11 +33,7 @@ const getHistoryController = async (req, res) => {
 
       const result = await lichsuServices.getHistories(filters, page, limit, include);
 
-      if (!result || !result.hisData || result.countHisData === 0) {
-        return res.status(404).json({ message: "Không tìm thấy dữ liệu lịch sử nào" });
-      }
-      
-      // Trả về object { hisData: [], countHisData: ... }
+      // Trả về object { hisData: [], countHisData: ... } - cho phép mảng rỗng
       resultData = result;
     }
 

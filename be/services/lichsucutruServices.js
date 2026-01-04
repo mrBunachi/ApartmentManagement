@@ -20,8 +20,8 @@ const historyDataParse = (data) => {
     if ("NGAYKETTHUC" in parsed && parsed.NGAYKETTHUC)
       parsed.NGAYKETTHUC = new Date(parsed.NGAYKETTHUC)
 
-    // Các trường String như LOAITHAYDOI, CHUCVU_CU, GHI_CHU 
-    // không cần parse, giữ nguyên giá trị string.
+    // 3. Filter theo MAPHONG (String - không cần parse)
+    // MAPHONG, LOAITHAYDOI, CHUCVU_CU, GHI_CHU giữ nguyên giá trị string
 
     return parsed
   } catch (error) {
@@ -40,10 +40,10 @@ const getHistories = async (data, page = 1, limit = 10,include=false) =>{
             where: filter,
             include: include ? {
                 NHANKHAU:{
-                    select: {MANHANKHAU:true,MAHOKHAU:true}
+                    select: {HOTEN: true, MANHANKHAU:true, MAHOKHAU:true, SOCANCUOC: true, NGAYSINH: true}
                 },
                 HOKHAU:{
-                    select: {MAHOKHAU:true, IDCHUHO:true}
+                    select: {MAHOKHAU:true, IDCHUHO:true, MAPHONG: true, LOAICANHO: true, DIACHI: true, MAPHONG: true}
                 }
             }:undefined
         })

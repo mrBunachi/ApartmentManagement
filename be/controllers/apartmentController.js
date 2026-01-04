@@ -61,10 +61,8 @@ const getApartmentController = async (req, res) => {
 
       const result = await apartmentServices.getApartments(filters, page, limit, include);
 
-      if (!result || !result.apartments || result.count === 0) {
-        return res.status(404).json({ message: "Không tìm thấy hộ khẩu nào" });
-      }
-      apartments = result; // Trả về object { apartments: [], count: ... }
+      // Trả về mảng rỗng thay vì 404 để frontend dễ xử lý
+      apartments = result || { apartments: [], count: 0 };
     }
 
     return res
@@ -134,9 +132,35 @@ const deleteApartmentController = async (req, res) => {
   }
 };
 
+/**
+ * Cập nhật chủ hộ (chỉ khi hộ khẩu chưa có chủ)
+ */
+const updateHouseholdHeadController = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { IDCHUHO } = req.body;
+
+    if (!IDCHUHO) {
+      return res.status(400).json({ message: "IDCHUHO là bắt buộc" });
+    }
+
+    const result = await apartmentServices.updateHouseholdHead(id, IDCHUHO);
+
+    return res.status(200).json({
+      message: "Cập nhật chủ hộ thành công",
+      apartment: result.apartment,
+    });
+  } catch (error) {
+    res
+      .status(error.status || 500)
+      .json({ message: error.message || "Lỗi cập nhật chủ hộ" });
+  }
+};
+
 module.exports = {
   createApartmentController,
   getApartmentController,
   updateApartmentController,
   deleteApartmentController,
+  updateHouseholdHeadController,
 };
