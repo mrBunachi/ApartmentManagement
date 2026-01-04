@@ -289,14 +289,7 @@ export default function FixedFeeManagement() {
               </div>
 
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <h4 className="font-medium text-blue-900 mb-2">💡 Tính năng tự động tính phí xe:</h4>
-                <p className="text-sm text-blue-700">
-                  Khi thêm hộ khẩu với số xe máy = 2, ô tô = 1:
-                  <br />
-                  → Phí xe = (2 × {formatCurrency(formData.PHIXEMAY)}) + (1 × {formatCurrency(formData.PHIXEOTO)})
-                  <br />
-                  = <strong>{formatCurrency((formData.PHIXEMAY || 0) * 2 + (formData.PHIXEOTO || 0))}</strong>
-                </p>
+                <h4 className="font-medium text-blue-900 mb-2"> Phí gửi xe sẽ được tính tự động</h4>
               </div>
 
               <div className="flex gap-3 pt-4">
