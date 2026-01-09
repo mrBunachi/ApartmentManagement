@@ -109,7 +109,6 @@ const ResidencyHistoryManagement = () => {
       'CHUYEN_DI': 'bg-blue-100 text-blue-800',
       'TACH_KHAU': 'bg-yellow-100 text-yellow-800',
       'TAO_HO_KHAU': 'bg-green-100 text-green',
-      'TACH_KHAU': 'bg-yellow-100 text-yellow-800',
     };
     return colors[type || ''] || 'bg-gray-100 text-gray-800';
   };

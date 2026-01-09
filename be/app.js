@@ -23,23 +23,17 @@ const billRoutes = require("./routes/billRoute")
 
 const app = express();
 
-// CORS configuration - allow multiple origins in development
+// CORS configuration
 const allowedOrigins = [
-    'http://localhost:5173',
-    'http://localhost:5174',
-    'http://localhost:3000',
-    process.env.FRONT_URI
+    process.env.FRONT_URI,
+    process.env.NODE_ENV !== 'production' ? 'http://localhost:5173' : null,
+    process.env.NODE_ENV !== 'production' ? 'http://localhost:5174' : null,
 ].filter(Boolean);
 
 app.use(cors({
     origin: function (origin, callback) {
         // Allow requests with no origin (like mobile apps, Postman, etc.)
         if (!origin) return callback(null, true);
-        
-        // In development, allow all localhost
-        if (process.env.NODE_ENV !== 'production' && origin.includes('localhost')) {
-            return callback(null, true);
-        }
         
         // Check allowed origins
         if (allowedOrigins.indexOf(origin) !== -1) {
