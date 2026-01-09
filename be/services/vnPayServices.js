@@ -62,20 +62,11 @@ const handle_Callback = async (query) => {
         });
 
         if (!verify.isVerified) {
-            console.log('❌ Checksum verification failed');
-            
-            // ⚠️ CHỈ ĐỂ TEST - BỎ QUA VERIFY TRONG DEVELOPMENT
-            // Trong production phải kiểm tra verify!
-            if (process.env.NODE_ENV !== 'production' && query.vnp_ResponseCode) {
-                console.log('⚠️  DEV MODE: Bypassing checksum verification');
-                // Tiếp tục xử lý mặc dù checksum fail (chỉ trong dev)
-            } else {
-                return {
-                    status: 'error',
-                    code: '97',
-                    message: 'Checksum failed (Chữ ký không hợp lệ)',
-                };
-            }
+            return {
+                status: 'error',
+                code: '97',
+                message: 'Checksum failed (Chữ ký không hợp lệ)',
+            };
         }
 
         if (verify.vnp_ResponseCode === '00' || verify.vnp_ResponseCode === 0 || query.vnp_ResponseCode === '00') {

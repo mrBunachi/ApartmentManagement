@@ -38,6 +38,9 @@ const getHistories = async (data, page = 1, limit = 10,include=false) =>{
             skip: (page - 1) * limit,
             take: limit,
             where: filter,
+            orderBy: {
+                ID: 'desc'
+            },
             include: include ? {
                 NHANKHAU:{
                     select: {HOTEN: true, MANHANKHAU:true, MAHOKHAU:true, SOCANCUOC: true, NGAYSINH: true}

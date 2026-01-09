@@ -65,7 +65,7 @@ export default function AdminManagement() {
       SODIENTHOAI: admin.SODIENTHOAI,
       EMAIL: admin.EMAIL || '',
       VAITRO: admin.VAITRO || 'admin_2',
-      ACTIVATE: admin.ACTIVATE,
+      ACTIVATE: admin.ACTIVATE ?? true,
       MATKHAU: '',
     });
     setShowModal(true);
@@ -93,7 +93,6 @@ export default function AdminManagement() {
           SODIENTHOAI: formData.SODIENTHOAI,
           EMAIL: formData.EMAIL || null,
           VAITRO: formData.VAITRO,
-          ACTIVATE: formData.ACTIVATE,
         };
         if (formData.MATKHAU) {
           updateData.MATKHAU = formData.MATKHAU;
@@ -164,7 +163,6 @@ export default function AdminManagement() {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">SĐT</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Vai trò</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Trạng thái</th>
               {isAdmin1 && <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Thao tác</th>}
             </tr>
           </thead>
@@ -181,13 +179,6 @@ export default function AdminManagement() {
                     admin.VAITRO === 'admin_1' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'
                   }`}>
                     {admin.VAITRO}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`px-2 py-1 text-xs rounded-full ${
-                    admin.ACTIVATE ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                  }`}>
-                    {admin.ACTIVATE ? 'Hoạt động' : 'Vô hiệu hóa'}
                   </span>
                 </td>
                 {isAdmin1 && (
@@ -236,9 +227,11 @@ export default function AdminManagement() {
                 <input
                   type="text"
                   required
+                  disabled={modalMode === 'edit'}
+                  maxLength={50}
                   value={formData.TENDANGNHAP}
                   onChange={(e) => setFormData({ ...formData, TENDANGNHAP: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${modalMode === 'edit' ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                 />
               </div>
 
@@ -262,9 +255,12 @@ export default function AdminManagement() {
                 <input
                   type="tel"
                   required
+                  maxLength={10}
+                  pattern="[0-9]{10}"
                   value={formData.SODIENTHOAI}
                   onChange={(e) => setFormData({ ...formData, SODIENTHOAI: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  placeholder="0123456789"
                 />
               </div>
 
@@ -272,6 +268,7 @@ export default function AdminManagement() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
                 <input
                   type="email"
+                  maxLength={50}
                   value={formData.EMAIL}
                   onChange={(e) => setFormData({ ...formData, EMAIL: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
@@ -289,33 +286,23 @@ export default function AdminManagement() {
                 >
                   <option value="admin_1">admin_1</option>
                   <option value="admin_2">admin_2</option>
-                  <option value="admin_3">admin_3</option>
                 </select>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Mật khẩu {modalMode === 'create' && <span className="text-red-500">*</span>}
-                </label>
-                <input
-                  type="password"
-                  required={modalMode === 'create'}
-                  value={formData.MATKHAU}
-                  onChange={(e) => setFormData({ ...formData, MATKHAU: e.target.value })}
-                  placeholder={modalMode === 'edit' ? 'Để trống nếu không đổi' : ''}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                />
-              </div>
-
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={formData.ACTIVATE}
-                  onChange={(e) => setFormData({ ...formData, ACTIVATE: e.target.checked })}
-                  className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
-                />
-                <label className="ml-2 text-sm text-gray-700">Kích hoạt tài khoản</label>
-              </div>
+              {modalMode === 'create' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Mật khẩu <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    value={formData.MATKHAU}
+                    onChange={(e) => setFormData({ ...formData, MATKHAU: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  />
+                </div>
+              )}
 
               <div className="flex gap-3 pt-4">
                 <button

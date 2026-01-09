@@ -39,15 +39,20 @@ const createTamVang = async (data) => {
     }
 };
 
-const getTamVangById = async (id, include = false) => {
+const getTamVangById = async (id) => {
     try {
         const tamVang = await prisma.tAMVANG.findUnique({
             where: {
                 MADANGKYTAMVANG: parseInt(id),
             },
-            include: include ? {
-                NHANKHAU: true 
-            } : undefined
+            include: {
+                NHANKHAU: {
+                    select: {
+                        HOTEN: true,
+                        SOCANCUOC: true
+                    }
+                }
+            }
         });
 
         if (!tamVang) throw { status: 404, message: 'Không tìm thấy thông tin tạm vắng' };
@@ -92,23 +97,26 @@ const updateTamVang = async (id, data) => {
     }
 };
 
-const getTamVangs = async (queryData, page = 1, limit = 10, include = false) => {
+const getTamVangs = async (queryData, page = 1, limit = 10) => {
     try {
         const skip = (page - 1) * limit;
-        const filter = tamVangDataParse(queryData);
+        
+        // Remove 'include' param before parsing
+        const { include, ...restQuery } = queryData;
+        const filter = tamVangDataParse(restQuery);
 
         const tamVangs = await prisma.tAMVANG.findMany({
             skip: skip,
             take: limit,
             where: filter,
-            include: include ? {
+            include: {
                 NHANKHAU: {
                     select: {
                         HOTEN: true,
                         SOCANCUOC: true
                     }
                 }
-            } : undefined
+            }
         });
 
         const count = await prisma.tAMVANG.count({

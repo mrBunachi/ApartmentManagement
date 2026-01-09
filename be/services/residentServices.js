@@ -126,6 +126,17 @@ const deleteResident = async(id) => {
                         NGAYKETTHUC:new Date()
                     }
                 })
+                
+                // Lấy thông tin mã phòng từ hộ khẩu
+                let maphong = null;
+                if (delRes.MAHOKHAU) {
+                    const hokhau = await db.hOKHAU.findUnique({
+                        where: { MAHOKHAU: delRes.MAHOKHAU },
+                        select: { MAPHONG: true }
+                    });
+                    maphong = hokhau?.MAPHONG;
+                }
+                
                 const historyData ={
                     NHANKHAU: {
                         connect: { MANHANKHAU: delRes.MANHANKHAU }
@@ -136,10 +147,11 @@ const deleteResident = async(id) => {
                         HOKHAU: {
                             connect: { MAHOKHAU: delRes.MAHOKHAU }
                         }
-                    }),           // Lưu ID hộ khẩu cũ
+                    }),
+                    MAPHONG: maphong,              // Lưu mã phòng
                     LOAITHAYDOI: 'XOA_NGUOI_O',    // Đánh dấu lý do
                     CHUCVU_CU: delRes.QUANHEVOICHUHO, // Lưu lại chức vụ cũ (Chủ hộ/Con...)
-                    GHI_CHU: 'Ngưởi ở đã bị xóa',
+                    GHI_CHU: `Người ở đã rời chung cư - Phòng ${maphong || 'N/A'}`,
                     NGAYBATDAU:delRes.NGAYTAO,
                     NGAYKETTHUC: new Date()        // Nếu DB chưa để default now()
                 }
@@ -177,14 +189,22 @@ const updateResident = async (id, data) => {
             // Nếu thay đổi hộ khẩu
             if (currentRes.MAHOKHAU && currentRes.MAHOKHAU !== parsedData.MAHOKHAU) {
 
+                // Lấy thông tin mã phòng cũ từ hộ khẩu cũ
+                const oldHokhau = await prisma.hOKHAU.findUnique({
+                    where: { MAHOKHAU: currentRes.MAHOKHAU },
+                    select: { MAPHONG: true }
+                });
+                const maphongCu = oldHokhau?.MAPHONG;
+
                 // 2. Ghi lịch sử "Chuyển đi" ở nhà cũ
                 await prisma.lICHSU_CUTRU.create({
                     data: {
                         MANHANKHAU: nhankhauId,
                         MAHOKHAU: currentRes.MAHOKHAU,
+                        MAPHONG: maphongCu,           // Lưu mã phòng cũ
                         LOAITHAYDOI: 'CHUYEN_KHAI_BAO',
                         CHUCVU_CU: currentRes.QUANHEVOICHUHO,
-                        GHI_CHU: `Chuyển sang hộ khẩu mới: ${parsedData.MAHOKHAU}`,
+                        GHI_CHU: `Chuyển khẩu từ phòng ${maphongCu || 'N/A'} sang hộ khẩu mới: ${parsedData.MAHOKHAU}`,
                         NGAYBATDAU: currentRes.NGAYTAO, 
                         NGAYKETTHUC: new Date()
                     }

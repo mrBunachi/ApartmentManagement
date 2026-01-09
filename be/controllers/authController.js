@@ -18,6 +18,21 @@ function generateRefreshToken(id) {
 const register =async (req, res) => {
     try {
         const {user, name,  password, phone_number ,email=null, role="admin_1"} = req.body;
+        
+        // Validate độ dài
+        if (user && user.length > 50) {
+            return res.status(400).json({ error: "Tên đăng nhập không được vượt quá 50 ký tự" });
+        }
+        if (phone_number && phone_number.length > 10) {
+            return res.status(400).json({ error: "Số điện thoại không được vượt quá 10 ký tự" });
+        }
+        if (email && email.length > 50) {
+            return res.status(400).json({ error: "Email không được vượt quá 50 ký tự" });
+        }
+        if (role && role.length > 50) {
+            return res.status(400).json({ error: "Vai trò không được vượt quá 50 ký tự" });
+        }
+        
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
         const newUser = await userServices.createUser({

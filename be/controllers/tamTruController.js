@@ -72,20 +72,18 @@ const getTamTruController = async (req, res) => {
 
         if (id) {
             // Trường hợp lấy chi tiết 1 bản ghi theo ID
-            const { tamTru } = await tamTruServices.getTamTruById(id, true);
+            const { tamTru } = await tamTruServices.getTamTruById(id);
             result = tamTru;
         } else {
             // Trường hợp lấy danh sách có phân trang và filter
             const filters = { ...req.query };
             const page = parseInt(filters.page) || 1;
             const limit = parseInt(filters.limit) || 20;
-            const include = filters.include === 'true'; // Kiểm tra query string ?include=true
 
             delete filters.page;
             delete filters.limit;
-            delete filters.include;
 
-            result = await tamTruServices.getTamTrus(filters, page, limit, include);
+            result = await tamTruServices.getTamTrus(filters, page, limit);
         }
 
         if (!result || (Array.isArray(result.tamTrus) && result.tamTrus.length === 0)) {

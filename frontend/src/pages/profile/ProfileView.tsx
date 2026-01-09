@@ -46,18 +46,10 @@ export default function ProfileView() {
   }
 
   return (
-    <div className="max-w-3xl">
-      <div className="mb-6 flex justify-between items-center">
-        <div>
-          <h3 className="text-lg font-medium text-gray-900">Thông tin tài khoản</h3>
-          <p className="text-sm text-gray-500">Chi tiết thông tin cá nhân của bạn</p>
-        </div>
-        <button
-          onClick={() => navigate('/profile/edit')}
-          className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center gap-2"
-        >
-          <span></span> Chỉnh sửa
-        </button>
+    <div className="max-w-3xl mx-auto">
+      <div className="mb-6">
+        <h3 className="text-lg font-medium text-gray-900">Thông tin tài khoản</h3>
+        <p className="text-sm text-gray-500">Chi tiết thông tin cá nhân của bạn</p>
       </div>
 
       <div className="bg-white rounded-lg shadow overflow-hidden">

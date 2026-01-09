@@ -76,8 +76,8 @@ const HouseholdManagement = () => {
 
   const fetchAllResidents = async () => {
     try {
-      // Lấy toàn bộ nhân khẩu trong chung cư (không phân trang)
-      const response = await residentService.getAll({ page: 1, limit: 10000 });
+      // Lấy toàn bộ nhân khẩu đang hoạt động trong chung cư (không phân trang)
+      const response = await residentService.getAll({ ACTIVATE: true, page: 1, limit: 10000 });
       setAllResidents(response.residents.residents || []);
     } catch (error: any) {
       toast.error(error.message || 'Lỗi khi tải danh sách nhân khẩu');
@@ -187,6 +187,9 @@ const HouseholdManagement = () => {
     setSelectedHousehold(household);
     setShowMemberModal(true);
     
+    // Refresh all residents list with ACTIVATE filter (no pagination)
+    await fetchAllResidents();
+    
     // Fetch members of this household
     try {
       setLoadingMembers(true);
@@ -237,25 +240,26 @@ const HouseholdManagement = () => {
 
   // Remove member from household
   const handleRemoveMember = async (residentId: number) => {
-    if (!confirm('Bạn có chắc muốn xóa thành viên khỏi hộ khẩu?')) return;
     if (!selectedHousehold) return;
+    
+    // // Kiểm tra nếu là chủ hộ
+    // if (residentId === selectedHousehold.IDCHUHO) {
+    //   toast.error('Không thể xóa chủ hộ khỏi hộ khẩu. Vui lòng chuyển quyền chủ hộ trước khi xóa.');
+    //   return;
+    // }
+    
+    if (!confirm('Bạn có chắc muốn xóa thành viên khỏi hộ khẩu?')) return;
 
     try {
-      await residentService.update(residentId, { MAHOKHAU: undefined });
+      // Gửi null thay vì undefined để xóa MAHOKHAU
+      await residentService.update(residentId, { MAHOKHAU: null });
       toast.success('Đã xóa thành viên khỏi hộ khẩu');
       
-      // Refresh members list
-      const response = await residentService.getAll({ 
-        ACTIVATE: true, 
-        limit: 10000 
-      });
-      const members = response.residents.residents.filter(
-        (r) => r.MAHOKHAU === selectedHousehold.MAHOKHAU
-      );
-      setHouseholdMembers(members);
+      // Reload lại danh sách thành viên và available residents
+      await openMemberModal(selectedHousehold);
       
+      // Refresh households list
       fetchHouseholds();
-      fetchAllResidents();
     } catch (error: any) {
       toast.error(error.message || 'Lỗi khi xóa thành viên');
     }

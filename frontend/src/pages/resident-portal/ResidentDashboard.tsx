@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import feeListService from '../../api/feeList.service';
 import toast from 'react-hot-toast';
+import { API_URL } from '../../utils/constants';
 
 interface FeeItem {
   MADOTTHU: string;
@@ -137,7 +138,7 @@ export default function ResidentDashboard() {
       const loaiphi = isVoluntary ? 1 : 0;
       const id_order = `${fee.MADOTTHU}-${fee.MAHOKHAU}-${loaiphi}`;
       
-      const response = await fetch('http://localhost:8080/vnpay', {
+      const response = await fetch(`${API_URL}/vnpay`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

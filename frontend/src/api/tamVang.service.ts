@@ -34,14 +34,14 @@ export const tamVangService = {
     limit?: number;
   }): Promise<{ message: string; data: { tamVangs: TamVang[]; count: number } }> => {
     const queryParams = new URLSearchParams();
-    queryParams.append('include', '');
     
     if (params?.MANHANKHAU) queryParams.append('MANHANKHAU', String(params.MANHANKHAU));
     if (params?.page) queryParams.append('page', String(params.page));
     if (params?.limit) queryParams.append('limit', String(params.limit));
 
-    console.log(`🔵 [Request] GET /tam-vang?${queryParams.toString()}`);
-    const response = await request.get(`/tam-vang?${queryParams.toString()}`);
+    const url = `/tam-vang?include&${queryParams.toString()}`;
+    console.log(`🔵 [Request] GET ${url}`);
+    const response = await request.get(url);
     console.log('🟢 [Response] GET /tam-vang:', response);
     return response;
   },

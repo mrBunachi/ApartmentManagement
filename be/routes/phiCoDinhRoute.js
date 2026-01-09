@@ -125,7 +125,7 @@ router.get("/", fixedFeeController.getFixedFeeController);
  *       500:
  *         description: Lỗi server
  */
-router.post("/", verifyRole("admin_1"), fixedFeeController.createFixedFeeController);
+router.post("/", fixedFeeController.createFixedFeeController);
 
 /**
  * @swagger
@@ -192,7 +192,7 @@ router.get("/:id", fixedFeeController.getFixedFeeController);
  *       500:
  *         description: Lỗi server
  */
-router.put("/:id", verifyRole("admin_1"), fixedFeeController.updateFixedFeeController);
+router.put("/:id",  fixedFeeController.updateFixedFeeController);
 
 /**
  * @swagger
@@ -224,6 +224,6 @@ router.put("/:id", verifyRole("admin_1"), fixedFeeController.updateFixedFeeContr
  *       500:
  *         description: Lỗi server
  */
-router.delete("/:id", verifyRole("admin_1"), fixedFeeController.deleteFixedFeeController);
+router.delete("/:id",  fixedFeeController.deleteFixedFeeController);
 
 module.exports = router;

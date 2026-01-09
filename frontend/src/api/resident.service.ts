@@ -62,7 +62,6 @@ export const residentService = {
     limit?: number;
   }): Promise<{ message: string; residents: { residents: Resident[]; count: number } }> => {
     const queryParams = new URLSearchParams();
-    queryParams.append('include', '');
     
     if (params?.ACTIVATE !== undefined) queryParams.append('ACTIVATE', String(params.ACTIVATE));
     if (params?.HOTEN) queryParams.append('HOTEN', params.HOTEN);
@@ -71,8 +70,9 @@ export const residentService = {
     if (params?.page) queryParams.append('page', String(params.page));
     if (params?.limit) queryParams.append('limit', String(params.limit));
 
-    console.log(`🔵 [Request] GET /nhan-khau?${queryParams.toString()} - Lấy danh sách dân cư`);
-    const response = await request.get(`/nhan-khau?${queryParams.toString()}`);
+    const url = `/nhan-khau?include&${queryParams.toString()}`;
+    console.log(`🔵 [Request] GET ${url} - Lấy danh sách dân cư`);
+    const response = await request.get(url);
     console.log('🟢 [Response] GET /nhan-khau:', response);
     return response;
   },

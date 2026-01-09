@@ -47,15 +47,20 @@ const createTamTru = async (data) => {
     }
 };
 
-const getTamTruById = async (id, include = false) => {
+const getTamTruById = async (id) => {
     try {
         const tamTru = await prisma.tAMTRU.findUnique({
             where: {
                 MADANGKYTAMTRU: parseInt(id),
             },
-            include: include ? {
-                NHANKHAU: true // Bao gồm thông tin nhân khẩu liên quan
-            } : undefined
+            include: {
+                NHANKHAU: {
+                    select: {
+                        HOTEN: true,
+                        SOCANCUOC: true
+                    }
+                }
+            }
         });
 
         if (!tamTru) throw { status: 404, message: 'Không tìm thấy thông tin tạm trú' };
@@ -100,23 +105,26 @@ const updateTamTru = async (id, data) => {
     }
 };
 
-const getTamTrus = async (queryData, page = 1, limit = 10, include = false) => {
+const getTamTrus = async (queryData, page = 1, limit = 10) => {
     try {
         const skip = (page - 1) * limit;
-        const filter = tamTruDataParse(queryData);
+        
+        // Remove 'include' param before parsing
+        const { include, ...restQuery } = queryData;
+        const filter = tamTruDataParse(restQuery);
 
         const tamTrus = await prisma.tAMTRU.findMany({
             skip: skip,
             take: limit,
             where: filter,
-            include: include ? {
+            include: {
                 NHANKHAU: {
                     select: {
                         HOTEN: true,
                         SOCANCUOC: true
                     }
                 }
-            } : undefined
+            }
         });
 
         const count = await prisma.tAMTRU.count({

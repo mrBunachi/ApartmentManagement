@@ -18,7 +18,14 @@ const userDataParse = (data) => {
     const parsed = { ...data }
 
     if ("id" in parsed) parsed.id = parseInt(parsed.id, 10)
-    if ("ACTIVATE" in parsed) parsed.ACTIVATE = parsed.ACTIVATE === 'true'
+    if ("ACTIVATE" in parsed) {
+      // Xử lý cả string và boolean
+      if (typeof parsed.ACTIVATE === 'string') {
+        parsed.ACTIVATE = parsed.ACTIVATE === 'true'
+      } else if (typeof parsed.ACTIVATE === 'boolean') {
+        parsed.ACTIVATE = parsed.ACTIVATE
+      }
+    }
 
     return parsed
   } catch (error) {
