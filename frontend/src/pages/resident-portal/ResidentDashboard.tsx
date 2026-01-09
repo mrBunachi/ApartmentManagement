@@ -9,8 +9,11 @@ interface FeeItem {
   MAHOKHAU: string;
   TIENNHA: number;
   TIENDICHVU: number;
+  TIENXEMAY?: number;
+  TIENOTO?: number;
   TIENDIEN: number;
   TIENNUOC: number;
+  TIENINTERNET?: number;
   TRANGTHAI: string;
   SOTIENDADONG: number;
   DOTTHUPHI: {
@@ -104,7 +107,15 @@ export default function ResidentDashboard() {
   };
 
   const calculateTotal = (fee: FeeItem) => {
-    return Number(fee.TIENDICHVU || 0) + Number(fee.TIENDIEN || 0) + Number(fee.TIENNUOC || 0);
+    // KHÔNG TÍNH TIỀN NHÀ - Chỉ tính điện nước dịch vụ và xe
+    return (
+      Number(fee.TIENDICHVU || 0) + 
+      Number(fee.TIENXEMAY || 0) + 
+      Number(fee.TIENOTO || 0) + 
+      Number(fee.TIENDIEN || 0) + 
+      Number(fee.TIENNUOC || 0) +
+      Number(fee.TIENINTERNET || 0)
+    );
   };
 
   const calculateRemaining = (fee: FeeItem) => {

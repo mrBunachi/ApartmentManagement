@@ -527,9 +527,9 @@ const DotThuPhiManagement = () => {
             </h2>
 
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-              <p className="text-sm text-blue-800">
-                💡 Nhập chỉ số điện và nước cho từng hộ. Chỉ những hộ có ít nhất 1 chỉ số &gt; 0 sẽ được tạo hóa đơn.
-              </p>
+              {/* <p className="text-sm text-blue-800">
+                 Nhập chỉ số điện và nước cho từng hộ. Chỉ những hộ có ít nhất 1 chỉ số &gt; 0 sẽ được tạo hóa đơn.
+              </p> */}
             </div>
 
             {/* Đơn giá chung */}
@@ -561,9 +561,6 @@ const DotThuPhiManagement = () => {
                   />
                 </div>
               </div>
-              <p className="text-xs text-gray-500 mt-2">
-                ℹ️ Thay đổi đơn giá ở đây sẽ áp dụng cho tất cả các hộ bên dưới
-              </p>
             </div>
 
             {/* Table nhập chỉ số */}

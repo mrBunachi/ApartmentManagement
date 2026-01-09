@@ -15,11 +15,11 @@ const processOneBill = async (maDotThu, data) => {
 
   const phiCoDinh = hoKhau.PHICODINH;
   
-  // Tính toán
+  // Tính toán - KHÔNG TÍNH TIỀN NHÀ VÀO TỔNG TIỀN CÂN ĐÔI
   const tienDien = parseFloat(SODIEN) * parseFloat(DONGIADIEN);
   const tienNuoc = parseFloat(SONUOC) * parseFloat(DONGIANUOC);
   const tienDichVu = parseFloat(phiCoDinh.PHIQLCHUNGCU || 0);
-  const tienNha = parseFloat(phiCoDinh.GIATIENCANHO || 0);
+  const tienNha = 0; // KHÔNG TÍNH TIỀN NHÀ
   const tienXeMay = (hoKhau.XEMAY || 0) * parseFloat(phiCoDinh.PHIXEMAY || 0);
   const tienOto = (hoKhau.OTO || 0) * parseFloat(phiCoDinh.PHIXEOTO || 0);
 

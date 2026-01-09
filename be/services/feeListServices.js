@@ -136,8 +136,8 @@ const updatePaymentStatus = async (maDotThu, maHoKhau, amount, phuongThuc = "Ti�
 
         if(!currentBill) throw { status: 404, message: "Không tìm thấy hóa đơn" };
 
+        // TỔNG TIỀN CẦN ĐÓNG - KHÔNG BAO GỒM TIỀN NHÀ
         const totalRequired = 
-            (parseFloat(currentBill.TIENNHA || 0)) +
             (parseFloat(currentBill.TIENDICHVU || 0)) +
             (parseFloat(currentBill.TIENXEMAY || 0)) +
             (parseFloat(currentBill.TIENOTO || 0)) +
