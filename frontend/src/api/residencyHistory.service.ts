@@ -1,6 +1,4 @@
 import request from '../utils/request';
-import type { Resident } from './resident.service';
-import type { Household } from './household.service';
 
 export interface ResidencyHistory {
   ID: number;

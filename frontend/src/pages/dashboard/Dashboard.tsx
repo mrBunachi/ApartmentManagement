@@ -43,7 +43,7 @@ export default function Dashboard() {
                 </svg>
                 <span className="text-sm text-gray-700 font-medium">Số điện thoại</span>
               </div>
-              <span className="text-sm font-bold text-blue-700">{user?.SDT || 'Chưa cập nhật'}</span>
+              <span className="text-sm font-bold text-blue-700">{user?.SODIENTHOAI || 'Chưa cập nhật'}</span>
             </div>
             <div className="flex justify-between items-center p-4 bg-white/60 rounded-lg backdrop-blur-sm">
               <div className="flex items-center gap-2">

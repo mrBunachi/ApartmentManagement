@@ -30,7 +30,7 @@ export default function ResidentDashboard() {
   const [voluntaryFees, setVoluntaryFees] = useState<FeeItem[]>([]);
   const [householdInfo, setHouseholdInfo] = useState<any>(null);
   const [customAmounts, setCustomAmounts] = useState<Record<string, number>>({});
-  const [showPaymentResult, setShowPaymentResult] = useState(false);
+  const [_showPaymentResult, setShowPaymentResult] = useState(false);
 
   useEffect(() => {
     if (!identifier) {
@@ -40,7 +40,6 @@ export default function ResidentDashboard() {
     
     // Kiểm tra kết quả thanh toán từ URL params
     const paymentStatus = searchParams.get('payment');
-    const paymentCode = searchParams.get('code');
     const paymentMessage = searchParams.get('message');
     
     if (paymentStatus) {

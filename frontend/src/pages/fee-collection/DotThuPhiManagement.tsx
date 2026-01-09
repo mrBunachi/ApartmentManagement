@@ -63,14 +63,15 @@ const DotThuPhiManagement = () => {
     }
   };
 
-  const fetchAllHouseholds = async () => {
-    try {
-      const response = await householdService.getAll({ ACTIVATE: true, limit: 10000 });
-      setAllHouseholds(response.households.households || []);
-    } catch (error: any) {
-      toast.error(error.message || 'Lỗi khi tải danh sách hộ khẩu');
-    }
-  };
+  // Unused function - commented out to fix build
+  // const fetchAllHouseholds = async () => {
+  //   try {
+  //     const response = await householdService.getAll({ ACTIVATE: true, limit: 10000 });
+  //     setAllHouseholds(response.apartments.apartments || []);
+  //   } catch (error: any) {
+  //     toast.error(error.message || 'Lỗi khi tải danh sách hộ khẩu');
+  //   }
+  // };
 
   const openCreateModal = () => {
     resetForm();
@@ -241,7 +242,7 @@ const DotThuPhiManagement = () => {
           onClick={openCreateModal}
           className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 flex items-center gap-2"
         >
-          <span>➕</span> Tạo đợt thu mới
+          <span>+</span> Tạo đợt thu mới
         </button>
       </div>
 
@@ -578,7 +579,7 @@ const DotThuPhiManagement = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {billsData.map((bill, index) => {
+                  {billsData.map((bill) => {
                     const household = allHouseholds.find(h => h.MAHOKHAU === bill.MAHOKHAU);
                     return (
                       <tr key={bill.MAHOKHAU} className="hover:bg-gray-50">

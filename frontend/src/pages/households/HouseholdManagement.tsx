@@ -7,7 +7,7 @@ import residentService from '../../api/resident.service';
 import type { Resident } from '../../api/resident.service';
 import { toast } from 'react-hot-toast';
 
-type SortField = 'HOTEN' | 'SODIENTHOAI';
+type SortField = 'HOTEN' | 'SOCANCUOC';
 type SortOrder = 'asc' | 'desc';
 
 const HouseholdManagement = () => {
@@ -159,7 +159,7 @@ const HouseholdManagement = () => {
       setRoomHistory(response.apartments.apartments || []);
       
       if (response.apartments.apartments?.length === 0) {
-        toast.info('Không tìm thấy lịch sử cho phòng này');
+        toast('Không tìm thấy lịch sử cho phòng này');
       }
     } catch (error: any) {
       toast.error(error.message || 'Lỗi khi tải lịch sử phòng');
@@ -241,7 +241,7 @@ const HouseholdManagement = () => {
     if (!selectedHousehold) return;
 
     try {
-      await residentService.update(residentId, { MAHOKHAU: null });
+      await residentService.update(residentId, { MAHOKHAU: undefined });
       toast.success('Đã xóa thành viên khỏi hộ khẩu');
       
       // Refresh members list
@@ -309,7 +309,6 @@ const HouseholdManagement = () => {
       const search = residentSearchTerm.toLowerCase();
       return (
         resident.HOTEN?.toLowerCase().includes(search) ||
-        resident.SODIENTHOAI?.toLowerCase().includes(search) ||
         resident.SOCANCUOC?.toLowerCase().includes(search)
       );
     })
@@ -320,9 +319,9 @@ const HouseholdManagement = () => {
       if (sortField === 'HOTEN') {
         aValue = a.HOTEN || '';
         bValue = b.HOTEN || '';
-      } else if (sortField === 'SODIENTHOAI') {
-        aValue = a.SODIENTHOAI || '';
-        bValue = b.SODIENTHOAI || '';
+      } else if (sortField === 'SOCANCUOC') {
+        aValue = a.SOCANCUOC || '';
+        bValue = b.SOCANCUOC || '';
       }
 
       if (sortOrder === 'asc') {
@@ -343,7 +342,8 @@ const HouseholdManagement = () => {
   };
 
   // Format currency
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: number | undefined) => {
+    if (!amount) return '0 ₫';
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
   };
 
@@ -749,12 +749,12 @@ const HouseholdManagement = () => {
                 Tên {sortField === 'HOTEN' && (sortOrder === 'asc' ? '↑' : '↓')}
               </button>
               <button
-                onClick={() => toggleSort('SODIENTHOAI')}
+                onClick={() => toggleSort('SOCANCUOC')}
                 className={`px-3 py-1 rounded text-sm ${
-                  sortField === 'SODIENTHOAI' ? 'bg-blue-600 text-white' : 'bg-gray-200'
+                  sortField === 'SOCANCUOC' ? 'bg-blue-600 text-white' : 'bg-gray-200'
                 }`}
               >
-                SĐT {sortField === 'SODIENTHOAI' && (sortOrder === 'asc' ? '↑' : '↓')}
+                Số CCCD {sortField === 'SOCANCUOC' && (sortOrder === 'asc' ? '↑' : '↓')}
               </button>
             </div>
 
@@ -776,7 +776,7 @@ const HouseholdManagement = () => {
                       className={`hover:bg-gray-50 ${selectedHeadId === resident.MANHANKHAU ? 'bg-blue-50' : ''}`}
                     >
                       <td className="px-4 py-2 text-sm">{resident.HOTEN}</td>
-                      <td className="px-4 py-2 text-sm">{resident.SODIENTHOAI || '-'}</td>
+                      <td className="px-4 py-2 text-sm">{resident.SOCANCUOC || '-'}</td>
                       <td className="px-4 py-2 text-sm">{resident.SOCANCUOC || '-'}</td>
                       <td className="px-4 py-2 text-sm">
                         <button
@@ -855,7 +855,7 @@ const HouseholdManagement = () => {
                           <div>
                             <div className="font-medium">{member.HOTEN}</div>
                             <div className="text-sm text-gray-600">{member.SOCANCUOC || 'N/A'}</div>
-                            <div className="text-sm text-gray-600">SĐT: {member.SODIENTHOAI || 'N/A'}</div>
+                            <div className="text-sm text-gray-600">Số CCCD: {member.SOCANCUOC || 'N/A'}</div>
                             {member.MANHANKHAU === selectedHousehold.IDCHUHO && (
                               <span className="inline-block mt-1 px-2 py-0.5 bg-blue-100 text-blue-800 text-xs rounded">
                                 Chủ hộ
@@ -913,7 +913,6 @@ const HouseholdManagement = () => {
                       const search = residentSearchTerm.toLowerCase();
                       return (
                         r.HOTEN?.toLowerCase().includes(search) ||
-                        r.SODIENTHOAI?.toLowerCase().includes(search) ||
                         r.SOCANCUOC?.toLowerCase().includes(search)
                       );
                     })
@@ -923,7 +922,7 @@ const HouseholdManagement = () => {
                           <div>
                             <div className="font-medium">{resident.HOTEN}</div>
                             <div className="text-sm text-gray-600">{resident.SOCANCUOC || 'N/A'}</div>
-                            <div className="text-sm text-gray-600">SĐT: {resident.SODIENTHOAI || 'N/A'}</div>
+                            <div className="text-sm text-gray-600">Số CCCD: {resident.SOCANCUOC || 'N/A'}</div>
                             {resident.MAHOKHAU && (
                               <div className="text-xs text-orange-600 mt-1">
                                 Đang ở hộ khác (ID: {resident.MAHOKHAU})

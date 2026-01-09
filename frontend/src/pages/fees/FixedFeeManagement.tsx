@@ -178,13 +178,13 @@ export default function FixedFeeManagement() {
                         onClick={() => handleEdit(fee)}
                         className="text-indigo-600 hover:text-indigo-900 mr-3"
                       >
-                        ✏️ Sửa
+                        Sửa
                       </button>
                       <button
                         onClick={() => handleDelete(fee)}
                         className="text-red-600 hover:text-red-900"
                       >
-                        🗑️ Xóa
+                        Xóa
                       </button>
                     </td>
                   </tr>

@@ -196,14 +196,14 @@ export default function AdminManagement() {
                       onClick={() => handleEdit(admin)}
                       className="text-indigo-600 hover:text-indigo-900 mr-3"
                     >
-                      ✏️ Sửa
+                      Sửa
                     </button>
                     {admin.id !== currentUser?.id && (
                       <button
                         onClick={() => handleDelete(admin)}
                         className="text-red-600 hover:text-red-900"
                       >
-                        🗑️ Xóa
+                        Xóa
                       </button>
                     )}
                   </td>

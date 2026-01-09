@@ -56,7 +56,7 @@ export default function ProfileView() {
           onClick={() => navigate('/profile/edit')}
           className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center gap-2"
         >
-          <span>✏️</span> Chỉnh sửa
+          <span></span> Chỉnh sửa
         </button>
       </div>
 
@@ -113,7 +113,7 @@ export default function ProfileView() {
               <span className={`inline-block px-3 py-1 text-sm rounded-full ${
                 user.ACTIVATE ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
               }`}>
-                {user.ACTIVATE ? '✅ Hoạt động' : '❌ Vô hiệu hóa'}
+                {user.ACTIVATE ? 'Hoạt động' : 'Vô hiệu hóa'}
               </span>
             </div>
           </div>
