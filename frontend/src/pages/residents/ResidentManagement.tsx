@@ -4,13 +4,17 @@ import type { Resident, CreateResidentRequest, UpdateResidentRequest } from '../
 
 export default function ResidentManagement() {
   const [residents, setResidents] = useState<Resident[]>([]);
+  const [inactiveResidents, setInactiveResidents] = useState<Resident[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingInactive, setLoadingInactive] = useState(false);
   const [error, setError] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
   const [selectedResident, setSelectedResident] = useState<Resident | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [searchType, setSearchType] = useState<'HOTEN' | 'SOCANCUOC' | 'NGAYSINH'>('HOTEN');
+  const [inactiveSearchTerm, setInactiveSearchTerm] = useState('');
+  const [inactiveSearchType, setInactiveSearchType] = useState<'HOTEN' | 'SOCANCUOC' | 'NGAYSINH'>('HOTEN');
 
   const [formData, setFormData] = useState<CreateResidentRequest>({
     HOTEN: '',
@@ -30,6 +34,7 @@ export default function ResidentManagement() {
 
   useEffect(() => {
     loadResidents();
+    loadInactiveResidents();
   }, []);
 
   const loadResidents = async (search?: { [key: string]: string }) => {
@@ -49,6 +54,21 @@ export default function ResidentManagement() {
     }
   };
 
+  const loadInactiveResidents = async (search?: { [key: string]: string }) => {
+    try {
+      setLoadingInactive(true);
+      const response = await residentService.getAll({
+        ACTIVATE: false,
+        ...search,
+      });
+      setInactiveResidents(response.residents.residents);
+    } catch (err: any) {
+      console.error('❌ Load inactive residents error:', err);
+    } finally {
+      setLoadingInactive(false);
+    }
+  };
+
   const handleSearch = () => {
     if (!searchTerm.trim()) {
       loadResidents();
@@ -58,6 +78,17 @@ export default function ResidentManagement() {
     const searchParams: { [key: string]: string } = {};
     searchParams[searchType] = searchTerm;
     loadResidents(searchParams);
+  };
+
+  const handleInactiveSearch = () => {
+    if (!inactiveSearchTerm.trim()) {
+      loadInactiveResidents();
+      return;
+    }
+
+    const searchParams: { [key: string]: string } = {};
+    searchParams[inactiveSearchType] = inactiveSearchTerm;
+    loadInactiveResidents(searchParams);
   };
 
   const handleCreate = () => {
@@ -163,7 +194,7 @@ export default function ResidentManagement() {
     <div>
       <div className="mb-6 flex justify-between items-center">
         <div>
-          <h3 className="text-lg font-medium text-gray-900">Quản lý Dân cư</h3>
+          <h3 className="text-2xl font-bold mb-4 text-gray-700">Quản lý Dân cư</h3>
           <p className="text-sm text-gray-500">Quản lý thông tin nhân khẩu trong hệ thống</p>
         </div>
         <button
@@ -261,6 +292,99 @@ export default function ResidentManagement() {
               ))}
             </tbody>
           </table>
+        </div>
+      </div>
+
+      {/* Inactive Residents Section */}
+      <div className="mt-8">
+        <h2 className="text-2xl font-bold mb-4 text-gray-700">Danh sách Dân cư Đã Xóa</h2>
+        
+        {/* Search for inactive residents */}
+        <div className="bg-gray-50 p-4 rounded-lg shadow mb-4">
+          <div className="flex gap-4 items-end">
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Tìm kiếm</label>
+              <div className="flex gap-2">
+                <select
+                  value={inactiveSearchType}
+                  onChange={(e) => setInactiveSearchType(e.target.value as 'HOTEN' | 'SOCANCUOC' | 'NGAYSINH')}
+                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="HOTEN">Họ tên</option>
+                  <option value="SOCANCUOC">Số căn cước</option>
+                  <option value="NGAYSINH">Ngày sinh</option>
+                </select>
+                <input
+                  type={inactiveSearchType === 'NGAYSINH' ? 'date' : 'text'}
+                  value={inactiveSearchTerm}
+                  onChange={(e) => setInactiveSearchTerm(e.target.value)}
+                  placeholder={`Nhập ${inactiveSearchType === 'HOTEN' ? 'họ tên' : inactiveSearchType === 'SOCANCUOC' ? 'số căn cước' : 'ngày sinh'}...`}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+            <button
+              onClick={handleInactiveSearch}
+              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              🔍 Tìm
+            </button>
+            <button
+              onClick={() => { setInactiveSearchTerm(''); loadInactiveResidents(); }}
+              className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+            >
+              ↻ Reset
+            </button>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-red-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Họ tên</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Số căn cước</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ngày sinh</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Giới tính</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nghề nghiệp</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ngày xóa</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {loadingInactive ? (
+                  <tr>
+                    <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
+                      Đang tải...
+                    </td>
+                  </tr>
+                ) : inactiveResidents.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
+                      Không có dân cư đã xóa
+                    </td>
+                  </tr>
+                ) : (
+                  inactiveResidents.map((resident) => (
+                    <tr key={resident.MANHANKHAU} className="hover:bg-gray-50 bg-red-50 opacity-70">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{resident.MANHANKHAU}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{resident.HOTEN}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{resident.SOCANCUOC || '-'}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {resident.NGAYSINH ? new Date(resident.NGAYSINH).toLocaleDateString('vi-VN') : '-'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{resident.GIOITINH || '-'}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{resident.NGHENGHIEP || '-'}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {resident.NGAYKETTHUC ? new Date(resident.NGAYKETTHUC).toLocaleDateString('vi-VN') : '-'}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 

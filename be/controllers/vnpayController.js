@@ -40,13 +40,16 @@ const handleCallback = async (req, res) => {
         const identifier = req.query.identifier || '';
         
         // Redirect về frontend với kết quả
-        const frontendUrl = process.env.FRONT_URI || 'http://localhost:5173';
+        // Ưu tiên FRONT_URI từ env, fallback về localhost cho development
+        const frontendUrl = process.env.FRONT_URI || process.env.FRONTEND_URL || 'http://localhost:5173';
         const redirectUrl = `${frontendUrl}/resident/dashboard?id=${identifier}&payment=${result.status}&code=${result.code}&message=${encodeURIComponent(result.message)}`;
         
+        console.log(`VNPay redirect to: ${redirectUrl}`); // Log để debug
         return res.redirect(redirectUrl);
 
     } catch (error) {
-        const frontendUrl = process.env.FRONT_URI || 'http://localhost:5173';
+        const frontendUrl = process.env.FRONT_URI || process.env.FRONTEND_URL || 'http://localhost:5173';
+        console.error('VNPay callback error:', error);
         return res.redirect(`${frontendUrl}/resident/dashboard?payment=error&message=${encodeURIComponent('Lỗi xử lý thanh toán')}`);
     }
 }
