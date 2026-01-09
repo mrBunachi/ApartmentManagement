@@ -97,6 +97,8 @@ const ResidencyHistoryManagement = () => {
   const getChangeTypeLabel = (type: string | null | undefined) => {
     const labels: Record<string, string> = {
       'XOA_HO_KHAU': 'Xóa hộ khẩu',
+      'XOA_NGUOI_O': 'Rời chung cư',
+      'CHUYEN_KHAI_BAO': 'Chuyển khẩu',
       'CHUYEN_DI': 'Chuyển đi',
       'TAO_HO_KHAU': 'Tạo hộ khẩu',
     };
@@ -106,9 +108,11 @@ const ResidencyHistoryManagement = () => {
   const getChangeTypeBadgeColor = (type: string | null | undefined) => {
     const colors: Record<string, string> = {
       'XOA_HO_KHAU': 'bg-red-100 text-red-800',
+      'XOA_NGUOI_O': 'bg-blue-100 text-blue-800',
+      'CHUYEN_KHAI_BAO': 'bg-yellow-100 text-yellow-800',
       'CHUYEN_DI': 'bg-blue-100 text-blue-800',
       'TACH_KHAU': 'bg-yellow-100 text-yellow-800',
-      'TAO_HO_KHAU': 'bg-green-100 text-green',
+      'TAO_HO_KHAU': 'bg-green-100 text-green-800',
     };
     return colors[type || ''] || 'bg-gray-100 text-gray-800';
   };
@@ -189,10 +193,9 @@ const ResidencyHistoryManagement = () => {
               className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">-- Tất cả --</option>
-              <option value="TAO_HO_KHAU">Tạo hộ khẩu</option>
               <option value="XOA_HO_KHAU">Xóa hộ khẩu</option>
-              <option value="CHUYEN_DI">Chuyển đi</option>
-              <option value="TACH_KHAU">Tách khẩu</option>
+              <option value="XOA_NGUOI_O">Rời chung cư</option>
+              <option value="CHUYEN_KHAI_BAO">Chuyển khẩu</option>
             </select>
           </div>
 
@@ -220,15 +223,15 @@ const ResidencyHistoryManagement = () => {
           </p>
         </div>
         <div className="bg-white rounded-lg shadow p-4">
-          <p className="text-sm text-gray-600">Chuyển đi</p>
+          <p className="text-sm text-gray-600">Rời chung cư</p>
           <p className="text-2xl font-bold text-blue-600">
-            {histories.filter(h => h.LOAITHAYDOI === 'CHUYEN_DI').length}
+            {histories.filter(h => h.LOAITHAYDOI === 'XOA_NGUOI_O').length}
           </p>
         </div>
         <div className="bg-white rounded-lg shadow p-4">
-          <p className="text-sm text-gray-600">Tách khẩu</p>
+          <p className="text-sm text-gray-600">Chuyển khẩu</p>
           <p className="text-2xl font-bold text-yellow-600">
-            {histories.filter(h => h.LOAITHAYDOI === 'TACH_KHAU').length}
+            {histories.filter(h => h.LOAITHAYDOI === 'CHUYEN_KHAI_BAO').length}
           </p>
         </div>
       </div>

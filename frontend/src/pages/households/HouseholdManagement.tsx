@@ -842,7 +842,7 @@ const HouseholdManagement = () => {
                 <div className="p-3 bg-gray-50 border-b font-medium">
                   Thành viên hiện tại ({householdMembers.length})
                 </div>
-                <div className="flex-1 overflow-y-auto p-3 space-y-2">
+                <div className="flex-1 overflow-y-auto p-3 space-y-2 min-h-[400px] max-h-[500px]" style={{ scrollbarWidth: 'thin' }}>
                   {loadingMembers ? (
                     <div className="text-center py-8 text-gray-500">Đang tải...</div>
                   ) : householdMembers.length > 0 ? (
@@ -903,7 +903,7 @@ const HouseholdManagement = () => {
                     className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
-                <div className="flex-1 overflow-y-auto p-3 space-y-2">
+                <div className="flex-1 overflow-y-auto p-3 space-y-2 min-h-[400px] max-h-[500px]" style={{ scrollbarWidth: 'thin' }}>
                   {allResidents
                     .filter((r) => {
                       // Only show residents not in this household
