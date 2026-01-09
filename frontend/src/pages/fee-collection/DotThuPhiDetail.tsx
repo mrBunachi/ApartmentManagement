@@ -278,8 +278,10 @@ const DotThuPhiDetail = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Phòng</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Chủ hộ</th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Dịch vụ</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Tiền xe</th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Điện</th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Nước</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Internet</th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Tổng</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Trạng thái</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Thao tác</th>
@@ -307,10 +309,16 @@ const DotThuPhiDetail = () => {
                         {formatCurrency(item.TIENDICHVU)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900">
+                        {formatCurrency(Number(item.TIENXEMAY || 0) + Number(item.TIENOTO || 0))}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900">
                         {formatCurrency(item.TIENDIEN)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900">
                         {formatCurrency(item.TIENNUOC)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900">
+                        {formatCurrency(item.TIENINTERNET)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-semibold text-gray-900">
                         {formatCurrency(total)}
