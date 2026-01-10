@@ -83,6 +83,8 @@ const DotThuPhiManagement = () => {
     setFormData({
       TEN: dotThu.TEN,
       BATBUOC: dotThu.BATBUOC,
+      NGAYBATDAU: dotThu.NGAYBATDAU ? dotThu.NGAYBATDAU.split('T')[0] : '',
+      NGAYKETTHUC: dotThu.NGAYKETTHUC ? dotThu.NGAYKETTHUC.split('T')[0] : '',
       MOTA: dotThu.MOTA || '',
       NGUOIQUANLYId: dotThu.NGUOIQUANLYId,
     });
@@ -124,10 +126,23 @@ const DotThuPhiManagement = () => {
         return;
       }
 
-      const newDotThu = await dotThuPhiService.create({
-        ...formData,
+      // Convert date strings to ISO DateTime
+      const dataToSubmit: any = {
+        TEN: formData.TEN,
+        BATBUOC: formData.BATBUOC,
+        MOTA: formData.MOTA,
         NGUOIQUANLYId: user?.id || 0,
-      });
+      };
+
+      // Only add dates if they are provided
+      if (formData.NGAYBATDAU) {
+        dataToSubmit.NGAYBATDAU = new Date(formData.NGAYBATDAU).toISOString();
+      }
+      if (formData.NGAYKETTHUC) {
+        dataToSubmit.NGAYKETTHUC = new Date(formData.NGAYKETTHUC).toISOString();
+      }
+
+      const newDotThu = await dotThuPhiService.create(dataToSubmit);
       
       toast.success('Tạo đợt thu phí thành công');
       setShowCreateModal(false);
@@ -149,7 +164,21 @@ const DotThuPhiManagement = () => {
     if (!selectedDotThu) return;
 
     try {
-      await dotThuPhiService.update(selectedDotThu.MADOTTHU, formData);
+      // Convert date strings to ISO DateTime
+      const dataToSubmit: any = {
+        TEN: formData.TEN,
+        MOTA: formData.MOTA,
+      };
+
+      // Only add dates if they are provided
+      if (formData.NGAYBATDAU) {
+        dataToSubmit.NGAYBATDAU = new Date(formData.NGAYBATDAU).toISOString();
+      }
+      if (formData.NGAYKETTHUC) {
+        dataToSubmit.NGAYKETTHUC = new Date(formData.NGAYKETTHUC).toISOString();
+      }
+
+      await dotThuPhiService.update(selectedDotThu.MADOTTHU, dataToSubmit);
       toast.success('Cập nhật đợt thu phí thành công');
       setShowEditModal(false);
       resetForm();
@@ -273,8 +302,8 @@ const DotThuPhiManagement = () => {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Mã đợt</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tên đợt thu</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Loại</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Thời gian</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Người tạo</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ngày tạo</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Thao tác</th>
             </tr>
           </thead>
@@ -314,11 +343,22 @@ const DotThuPhiManagement = () => {
                       </span>
                     )}
                   </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {dotThu.NGAYBATDAU && dotThu.NGAYKETTHUC ? (
+                      <div>
+                        <div className="text-xs">
+                          🟢 {new Date(dotThu.NGAYBATDAU).toLocaleDateString('vi-VN')}
+                        </div>
+                        <div className="text-xs">
+                          🔴 {new Date(dotThu.NGAYKETTHUC).toLocaleDateString('vi-VN')}
+                        </div>
+                      </div>
+                    ) : (
+                      <span className="text-xs text-gray-400">Không giới hạn</span>
+                    )}
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {dotThu.NGUOIQUANLY?.HOTEN || 'N/A'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {dotThu.NGAYTAO ? new Date(dotThu.NGAYTAO).toLocaleDateString('vi-VN') : 'N/A'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
                     <div className="flex gap-2">
@@ -418,10 +458,38 @@ const DotThuPhiManagement = () => {
                 </select>
                 <p className="text-xs text-gray-500 mt-1">
                   {formData.BATBUOC 
-                    ? '💡 Sau khi tạo sẽ mở form nhập chỉ số điện nước cho tất cả hộ'
-                    : '💰 Dùng cho các khoản đóng góp quỹ, ủng hộ tự nguyện'
+                    // ? '💡 Sau khi tạo sẽ mở form nhập chỉ số điện nước cho tất cả hộ'
+                    // : '💰 Dùng cho các khoản đóng góp quỹ, ủng hộ tự nguyện'
                   }
                 </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Ngày bắt đầu
+                  </label>
+                  <input
+                    type="date"
+                    value={formData.NGAYBATDAU || ''}
+                    onChange={(e) => setFormData({ ...formData, NGAYBATDAU: e.target.value })}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  />
+                  {/* <p className="text-xs text-gray-500 mt-1">Ngày bắt đầu cho phép đóng</p> */}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Ngày kết thúc
+                  </label>
+                  <input
+                    type="date"
+                    value={formData.NGAYKETTHUC || ''}
+                    onChange={(e) => setFormData({ ...formData, NGAYKETTHUC: e.target.value })}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  />
+                  {/* <p className="text-xs text-gray-500 mt-1">Hạn chót đóng phí</p> */}
+                </div>
               </div>
 
               <div>
@@ -476,6 +544,32 @@ const DotThuPhiManagement = () => {
                   onChange={(e) => setFormData({ ...formData, TEN: e.target.value })}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2"
                 />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Ngày bắt đầu
+                  </label>
+                  <input
+                    type="date"
+                    value={formData.NGAYBATDAU || ''}
+                    onChange={(e) => setFormData({ ...formData, NGAYBATDAU: e.target.value })}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Ngày kết thúc
+                  </label>
+                  <input
+                    type="date"
+                    value={formData.NGAYKETTHUC || ''}
+                    onChange={(e) => setFormData({ ...formData, NGAYKETTHUC: e.target.value })}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  />
+                </div>
               </div>
 
               <div>

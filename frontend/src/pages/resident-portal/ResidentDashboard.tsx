@@ -3,6 +3,8 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import feeListService from '../../api/feeList.service';
 import toast from 'react-hot-toast';
 import { API_URL } from '../../utils/constants';
+import { getFeeStatus } from '../../utils/feeStatus';
+import type { FeeStatus } from '../../utils/feeStatus';
 
 interface FeeItem {
   MADOTTHU: string;
@@ -20,6 +22,8 @@ interface FeeItem {
     TEN: string;
     BATBUOC: boolean;
     NGAYTAO: string;
+    NGAYBATDAU?: string;
+    NGAYKETTHUC?: string;
     MOTA: string | null;
   };
 }
@@ -30,8 +34,9 @@ export default function ResidentDashboard() {
   const identifier = searchParams.get('id') || '';
   
   const [loading, setLoading] = useState(true);
-  const [mandatoryFees, setMandatoryFees] = useState<FeeItem[]>([]);
-  const [voluntaryFees, setVoluntaryFees] = useState<FeeItem[]>([]);
+  const [upcomingFees, setUpcomingFees] = useState<FeeItem[]>([]);
+  const [activeFees, setActiveFees] = useState<FeeItem[]>([]);
+  const [overdueFees, setOverdueFees] = useState<FeeItem[]>([]);
   const [householdInfo, setHouseholdInfo] = useState<any>(null);
   const [customAmounts, setCustomAmounts] = useState<Record<string, number>>({});
   const [_showPaymentResult, setShowPaymentResult] = useState(false);
@@ -84,12 +89,32 @@ export default function ResidentDashboard() {
         const { household, fees } = response.data;
         setHouseholdInfo(household);
         
-        // Separate mandatory and voluntary fees
-        const mandatory = fees.filter((fee: FeeItem) => fee.DOTTHUPHI.BATBUOC);
-        const voluntary = fees.filter((fee: FeeItem) => !fee.DOTTHUPHI.BATBUOC);
+        // Categorize fees by status: upcoming, active, overdue
+        const upcoming: FeeItem[] = [];
+        const active: FeeItem[] = [];
+        const overdue: FeeItem[] = [];
         
-        setMandatoryFees(mandatory);
-        setVoluntaryFees(voluntary);
+        fees.forEach((fee: FeeItem) => {
+          const statusInfo = getFeeStatus(fee.DOTTHUPHI, false);
+          const isVoluntary = !fee.DOTTHUPHI.BATBUOC;
+          
+          // Ẩn các khoản phí TỰ NGUYỆN đã QUÁ HẠN
+          if (statusInfo.status === 'overdue' && isVoluntary) {
+            return; // Skip - không hiển thị
+          }
+          
+          if (statusInfo.status === 'upcoming') {
+            upcoming.push(fee);
+          } else if (statusInfo.status === 'active') {
+            active.push(fee);
+          } else if (statusInfo.status === 'overdue') {
+            overdue.push(fee);
+          }
+        });
+        
+        setUpcomingFees(upcoming);
+        setActiveFees(active);
+        setOverdueFees(overdue);
       }
     } catch (error: any) {
       console.error('Error fetching resident fees:', error);
@@ -176,6 +201,157 @@ export default function ResidentDashboard() {
     }
   };
 
+  // Helper function to render a fee card
+  const renderFeeCard = (fee: FeeItem, statusType: FeeStatus) => {
+    const statusInfo = getFeeStatus(fee.DOTTHUPHI, false);
+    const isVoluntary = !fee.DOTTHUPHI.BATBUOC;
+    
+    // Determine border and badge colors based on status
+    let borderColor = 'border-blue-500';
+    let badgeColor = 'bg-blue-100 text-blue-700';
+    
+    if (statusType === 'upcoming') {
+      borderColor = 'border-gray-400';
+      badgeColor = 'bg-gray-100 text-gray-700';
+    } else if (statusType === 'overdue') {
+      borderColor = 'border-red-500';
+      badgeColor = 'bg-red-100 text-red-700';
+    }
+
+    return (
+      <div key={fee.MADOTTHU} className={`bg-white rounded-xl shadow-md p-6 border-l-4 ${borderColor}`}>
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex-1">
+            <h3 className="text-lg font-bold text-gray-800">{fee.DOTTHUPHI.TEN}</h3>
+            <p className="text-sm text-gray-500">
+              {new Date(fee.DOTTHUPHI.NGAYTAO).toLocaleDateString('vi-VN')}
+            </p>
+            {fee.DOTTHUPHI.NGAYBATDAU && fee.DOTTHUPHI.NGAYKETTHUC && (
+              <p className="text-xs text-gray-600 mt-1">
+                🗓️ {new Date(fee.DOTTHUPHI.NGAYBATDAU).toLocaleDateString('vi-VN')} 
+                {' - '}
+                {new Date(fee.DOTTHUPHI.NGAYKETTHUC).toLocaleDateString('vi-VN')}
+              </p>
+            )}
+          </div>
+          <div className="flex flex-col items-end gap-2">
+            <span className={`px-3 py-1 ${badgeColor} rounded-full text-xs font-semibold`}>
+              {statusInfo.label}
+            </span>
+            {isVoluntary && (
+              <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">
+                Tự nguyện
+              </span>
+            )}
+          </div>
+        </div>
+        
+        {fee.DOTTHUPHI.MOTA && (
+          <p className="text-sm text-gray-600 mb-3">{fee.DOTTHUPHI.MOTA}</p>
+        )}
+        
+        {!isVoluntary && (
+          <div className="space-y-2 mb-4">
+            {fee.TIENDICHVU > 0 && (
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">Dịch vụ:</span>
+                <span className="font-semibold">{formatCurrency(fee.TIENDICHVU)}</span>
+              </div>
+            )}
+            {fee.TIENDIEN > 0 && (
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">Điện:</span>
+                <span className="font-semibold">{formatCurrency(fee.TIENDIEN)}</span>
+              </div>
+            )}
+            {fee.TIENNUOC > 0 && (
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">Nước:</span>
+                <span className="font-semibold">{formatCurrency(fee.TIENNUOC)}</span>
+              </div>
+            )}
+            {fee.TIENINTERNET && fee.TIENINTERNET > 0 && (
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">Internet:</span>
+                <span className="font-semibold">{formatCurrency(fee.TIENINTERNET)}</span>
+              </div>
+            )}
+            {fee.TIENXEMAY && fee.TIENXEMAY > 0 && (
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">Gửi xe máy:</span>
+                <span className="font-semibold">{formatCurrency(fee.TIENXEMAY)}</span>
+              </div>
+            )}
+            {fee.TIENOTO && fee.TIENOTO > 0 && (
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">Gửi ô tô:</span>
+                <span className="font-semibold">{formatCurrency(fee.TIENOTO)}</span>
+              </div>
+            )}
+          </div>
+        )}
+        
+        <div className="pt-4 border-t space-y-3">
+          {isVoluntary ? (
+            <>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Số tiền muốn đóng góp:
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="1000"
+                  placeholder="Nhập số tiền (VNĐ)"
+                  value={customAmounts[`${fee.MADOTTHU}`] || ''}
+                  onChange={(e) => setCustomAmounts({
+                    ...customAmounts,
+                    [`${fee.MADOTTHU}`]: Number(e.target.value)
+                  })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+                {customAmounts[`${fee.MADOTTHU}`] > 0 && (
+                  <p className="text-sm text-blue-600 mt-1">
+                    = {formatCurrency(customAmounts[`${fee.MADOTTHU}`])}
+                  </p>
+                )}
+              </div>
+              <button
+                onClick={() => handlePayment(fee, true)}
+                disabled={!customAmounts[`${fee.MADOTTHU}`] || customAmounts[`${fee.MADOTTHU}`] <= 0 || statusType === 'upcoming'}
+                className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                </svg>
+                {statusType === 'upcoming' ? 'Chưa đến hạn' : 'Đóng góp qua VNPay'}
+              </button>
+            </>
+          ) : (
+            <>
+              <div className="flex justify-between items-center mb-3">
+                <span className="text-gray-700 font-medium">Còn phải đóng:</span>
+                <span className={`text-2xl font-bold ${statusType === 'overdue' ? 'text-red-600' : 'text-blue-600'}`}>
+                  {formatCurrency(calculateRemaining(fee))}
+                </span>
+              </div>
+              <button
+                onClick={() => handlePayment(fee, false)}
+                disabled={statusType === 'upcoming'}
+                className={`w-full ${statusType === 'overdue' ? 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700' : 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700'} disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg`}
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                </svg>
+                {statusType === 'upcoming' ? 'Chưa đến hạn' : 'Thanh toán qua VNPay'}
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center">
@@ -245,169 +421,79 @@ export default function ResidentDashboard() {
           </div>
         )}
 
-        {/* Mandatory Fees */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
-              <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
+        {/* Overdue Fees - Quá hạn */}
+        {overdueFees.length > 0 && (
+          <div className="mb-8">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+                <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-red-700">Phí quá hạn chưa đóng ({overdueFees.length})</h2>
+                <p className="text-sm text-red-600">Các khoản phí đã quá hạn thanh toán</p>
+              </div>
             </div>
-            <div>
-              <h2 className="text-2xl font-bold text-gray-800">Phí bắt buộc cần đóng</h2>
-              <p className="text-sm text-gray-600">Các khoản phí hàng tháng bắt buộc</p>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {overdueFees.map((fee) => renderFeeCard(fee, 'overdue'))}
             </div>
           </div>
-          
-          {mandatoryFees.length === 0 ? (
-            <div className="bg-white rounded-xl shadow-md p-8 text-center">
-              <svg className="w-16 h-16 text-green-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <p className="text-lg font-semibold text-gray-800">Tuyệt vời!</p>
-              <p className="text-gray-600">Bạn đã hoàn thành tất cả các khoản phí bắt buộc</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {mandatoryFees.map((fee) => (
-                <div key={fee.MADOTTHU} className="bg-white rounded-xl shadow-md p-6 border-l-4 border-red-500">
-                  <div className="flex items-start justify-between mb-4">
-                    <div>
-                      <h3 className="text-lg font-bold text-gray-800">{fee.DOTTHUPHI.TEN}</h3>
-                      <p className="text-sm text-gray-500">
-                        {new Date(fee.DOTTHUPHI.NGAYTAO).toLocaleDateString('vi-VN')}
-                      </p>
-                    </div>
-                    <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold">
-                      Bắt buộc
-                    </span>
-                  </div>
-                  
-                  <div className="space-y-2 mb-4">
-                    {fee.TIENDICHVU > 0 && (
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Dịch vụ:</span>
-                        <span className="font-semibold">{formatCurrency(fee.TIENDICHVU)}</span>
-                      </div>
-                    )}
-                    {fee.TIENDIEN > 0 && (
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Điện:</span>
-                        <span className="font-semibold">{formatCurrency(fee.TIENDIEN)}</span>
-                      </div>
-                    )}
-                    {fee.TIENNUOC > 0 && (
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Nước:</span>
-                        <span className="font-semibold">{formatCurrency(fee.TIENNUOC)}</span>
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="pt-4 border-t">
-                    <div className="flex justify-between items-center mb-3">
-                      <span className="text-gray-700 font-medium">Còn phải đóng:</span>
-                      <span className="text-2xl font-bold text-red-600">
-                        {formatCurrency(calculateRemaining(fee))}
-                      </span>
-                    </div>
-                    <button
-                      onClick={() => handlePayment(fee, false)}
-                      className="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                      </svg>
-                      Thanh toán qua VNPay
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        )}
 
-        {/* Voluntary Contributions */}
-        <div>
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-              </svg>
+        {/* Active Fees - Đang trong đợt */}
+        {activeFees.length > 0 && (
+          <div className="mb-8">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-blue-700">Đang trong đợt đóng ({activeFees.length})</h2>
+                <p className="text-sm text-blue-600">Các khoản phí đang mở để thanh toán</p>
+              </div>
             </div>
-            <div>
-              <h2 className="text-2xl font-bold text-gray-800">Đóng góp tự nguyện</h2>
-              <p className="text-sm text-gray-600">Các quỹ đóng góp cộng đồng</p>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {activeFees.map((fee) => renderFeeCard(fee, 'active'))}
             </div>
           </div>
-          
-          {voluntaryFees.length === 0 ? (
-            <div className="bg-white rounded-xl shadow-md p-8 text-center">
-              <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-              </svg>
-              <p className="text-gray-600">Hiện không có đợt đóng góp tự nguyện nào</p>
+        )}
+
+        {/* Upcoming Fees - Sắp đến đợt */}
+        {upcomingFees.length > 0 && (
+          <div className="mb-8">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-gray-700">Sắp đến đợt đóng ({upcomingFees.length})</h2>
+                <p className="text-sm text-gray-600">Các khoản phí sắp mở trong thời gian tới</p>
+              </div>
             </div>
-          ) : (
+            
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {voluntaryFees.map((fee) => (
-                <div key={fee.MADOTTHU} className="bg-white rounded-xl shadow-md p-6 border-l-4 border-blue-500">
-                  <div className="flex items-start justify-between mb-4">
-                    <div>
-                      <h3 className="text-lg font-bold text-gray-800">{fee.DOTTHUPHI.TEN}</h3>
-                      <p className="text-sm text-gray-500">
-                        {new Date(fee.DOTTHUPHI.NGAYTAO).toLocaleDateString('vi-VN')}
-                      </p>
-                    </div>
-                    <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">
-                      Tự nguyện
-                    </span>
-                  </div>
-                  
-                  {fee.DOTTHUPHI.MOTA && (
-                    <p className="text-sm text-gray-600 mb-4">{fee.DOTTHUPHI.MOTA}</p>
-                  )}
-                  
-                  <div className="pt-4 border-t space-y-3">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Số tiền muốn đóng góp:
-                      </label>
-                      <input
-                        type="number"
-                        min="0"
-                        step="1000"
-                        placeholder="Nhập số tiền (VNĐ)"
-                        value={customAmounts[`${fee.MADOTTHU}`] || ''}
-                        onChange={(e) => setCustomAmounts({
-                          ...customAmounts,
-                          [`${fee.MADOTTHU}`]: Number(e.target.value)
-                        })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      />
-                      {customAmounts[`${fee.MADOTTHU}`] > 0 && (
-                        <p className="text-sm text-blue-600 mt-1">
-                          = {formatCurrency(customAmounts[`${fee.MADOTTHU}`])}
-                        </p>
-                      )}
-                    </div>
-                    
-                    <button
-                      onClick={() => handlePayment(fee, true)}
-                      disabled={!customAmounts[`${fee.MADOTTHU}`] || customAmounts[`${fee.MADOTTHU}`] <= 0}
-                      className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                      </svg>
-                      Đóng góp qua VNPay
-                    </button>
-                  </div>
-                </div>
-              ))}
+              {upcomingFees.map((fee) => renderFeeCard(fee, 'upcoming'))}
             </div>
-          )}
-        </div>
+          </div>
+        )}
+
+        {/* No fees message */}
+        {upcomingFees.length === 0 && activeFees.length === 0 && overdueFees.length === 0 && (
+          <div className="bg-white rounded-xl shadow-md p-8 text-center">
+            <svg className="w-16 h-16 text-green-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p className="text-lg font-semibold text-gray-800">Tuyệt vời!</p>
+            <p className="text-gray-600">Bạn đã hoàn thành tất cả các khoản phí</p>
+          </div>
+        )}
       </main>
     </div>
   );

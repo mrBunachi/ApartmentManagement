@@ -59,6 +59,8 @@ model DOTTHUPHI {
   TEN            String
   BATBUOC        Boolean          @default(true)
   NGAYTAO        DateTime?        @default(now())
+  NGAYBATDAU     DateTime?        // Ngày bắt đầu cho phép đóng phí
+  NGAYKETTHUC    DateTime?        // Hạn chót đóng phí
   MOTA           String?
   DANHSACHTHUPHI DANHSACHTHUPHI[]
   DONGGOP        DONGGOP[]

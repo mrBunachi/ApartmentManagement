@@ -358,7 +358,9 @@ async function main() {
     data: {
       TEN: 'Phí quản lý tháng 1/2026',
       BATBUOC: true,
-      NGAYTAO: new Date(),
+      NGAYTAO: new Date('2026-01-01'),
+      NGAYBATDAU: new Date('2026-01-01'),  // Bắt đầu thu từ đầu tháng
+      NGAYKETTHUC: new Date('2026-01-10'), // Hạn đóng: 10/01
       MOTA: 'Thu phí quản lý, điện nước tháng 1/2026',
       NGUOIQUANLYId: admin1.id
     }
@@ -368,7 +370,9 @@ async function main() {
     data: {
       TEN: 'Quyên góp Tết 2026',
       BATBUOC: false,
-      NGAYTAO: new Date(),
+      NGAYTAO: new Date('2026-01-05'),
+      NGAYBATDAU: new Date('2026-01-15'),  // Bắt đầu từ 15/01
+      NGAYKETTHUC: new Date('2026-02-10'), // Hạn đóng: 10/02
       MOTA: 'Quyên góp tổ chức Tết cộng đồng',
       NGUOIQUANLYId: admin2.id
     }

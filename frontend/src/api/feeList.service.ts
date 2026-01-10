@@ -21,6 +21,8 @@ export interface FeeListItem {
     MADOTTHU: number;
     TEN: string;
     NGAYTAO: string;
+    NGAYBATDAU?: string;
+    NGAYKETTHUC?: string;
   };
   HOKHAU?: {
     MAPHONG: string;

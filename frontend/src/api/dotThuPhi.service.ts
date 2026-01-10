@@ -5,6 +5,8 @@ export interface DotThuPhi {
   TEN: string;
   BATBUOC: boolean;
   NGAYTAO?: string;
+  NGAYBATDAU?: string;    // Ngày bắt đầu cho phép đóng phí
+  NGAYKETTHUC?: string;   // Hạn chót đóng phí
   MOTA?: string;
   NGUOIQUANLYId: number;
   NGUOIQUANLY?: {
@@ -17,6 +19,8 @@ export interface DotThuPhi {
 export interface CreateDotThuPhiRequest {
   TEN: string;
   BATBUOC: boolean;
+  NGAYBATDAU?: string;    // Ngày bắt đầu (optional)
+  NGAYKETTHUC?: string;   // Ngày kết thúc (optional)
   MOTA?: string;
   NGUOIQUANLYId: number;
 }

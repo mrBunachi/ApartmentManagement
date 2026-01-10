@@ -188,6 +188,8 @@ const getUnpaidFeeListByHousehold = async (maHoKhau) => {
             MADOTTHU: true, 
             TEN: true, 
             NGAYTAO: true,
+            NGAYBATDAU: true,
+            NGAYKETTHUC: true,
             MOTA: true
           }
         },
@@ -294,6 +296,8 @@ const getUnpaidFeesByPhone = async (soDienThoai) => {
             TEN: true,
             BATBUOC: true,
             NGAYTAO: true,
+            NGAYBATDAU: true,
+            NGAYKETTHUC: true,
             MOTA: true
           }
         }
@@ -365,6 +369,8 @@ const getUnpaidFeesByIdentifier = async (identifier) => {
             TEN: true,
             BATBUOC: true,
             NGAYTAO: true,
+            NGAYBATDAU: true,
+            NGAYKETTHUC: true,
             MOTA: true
           }
         }
@@ -380,6 +386,8 @@ const getUnpaidFeesByIdentifier = async (identifier) => {
         TEN: true,
         BATBUOC: true,
         NGAYTAO: true,
+        NGAYBATDAU: true,
+        NGAYKETTHUC: true,
         MOTA: true
       }
     });
