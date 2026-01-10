@@ -35,12 +35,16 @@ const getDotThuPhiById = async (req, res) => {
 
 const createDotThuPhi = async (req, res) => {
     try {
+        console.log('📥 Received data:', req.body);
         const dotThuPhiData = req.body;
         const newDotThuPhi = await dotThuPhiServices.createDotThuPhi(dotThuPhiData);
         res.status(201).json({dotThuPhi: newDotThuPhi });
     }
     catch (error) {
-        res.status(500).json({ message: "Lỗi tạo đợt thu phí", error: error.message });
+        console.error('❌ Controller error:', error);
+        const status = error.status || 500;
+        const message = error.message || "Lỗi tạo đợt thu phí";
+        res.status(status).json({ message, error: error.message, details: error });
     }
 };
 
