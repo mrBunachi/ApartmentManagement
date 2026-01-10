@@ -35,17 +35,30 @@ const userDataParse = (data) => {
 
 const createUser= async (data) => {
     try{
-
         const newUser = await prisma.nGUOIQUANLY.create({
             data:userDataParse(data)
         })
         return {newUser};
     }
     catch(error){
-        if (error.code === 'P2025') { // Prisma not found error
-            throw { status: 404, message: 'User not found' }
+        // Xử lý lỗi unique constraint
+        if (error.code === 'P2002') {
+            const field = error.meta?.target?.[0];
+            if (field === 'TENDANGNHAP') {
+                throw { status: 400, message: 'Tên đăng nhập đã tồn tại. Vui lòng chọn tên khác.' };
+            } else if (field === 'EMAIL') {
+                throw { status: 400, message: 'Email đã được sử dụng. Vui lòng sử dụng email khác.' };
+            } else if (field === 'SODIENTHOAI') {
+                throw { status: 400, message: 'Số điện thoại đã được sử dụng. Vui lòng sử dụng số khác.' };
+            }
+            throw { status: 400, message: 'Dữ liệu đã tồn tại trong hệ thống.' };
         }
-            throw { status: 500, message: error.message }
+        // Xử lý lỗi not found
+        if (error.code === 'P2025') {
+            throw { status: 404, message: 'Không tìm thấy dữ liệu' };
+        }
+        // Lỗi khác
+        throw { status: 500, message: error.message };
     }
 }
 const getUsers = async (data, page = 1, limit = 20) => {
@@ -106,10 +119,24 @@ const updateUser = async(id, updateData) => {
         return {updateUser};
     }
     catch(error){
-        if (error.code === 'P2025') { // Prisma not found error
-            throw { status: 404, message: 'User not found' }
+        // Xử lý lỗi unique constraint
+        if (error.code === 'P2002') {
+            const field = error.meta?.target?.[0];
+            if (field === 'TENDANGNHAP') {
+                throw { status: 400, message: 'Tên đăng nhập đã tồn tại. Vui lòng chọn tên khác.' };
+            } else if (field === 'EMAIL') {
+                throw { status: 400, message: 'Email đã được sử dụng. Vui lòng sử dụng email khác.' };
+            } else if (field === 'SODIENTHOAI') {
+                throw { status: 400, message: 'Số điện thoại đã được sử dụng. Vui lòng sử dụng số khác.' };
+            }
+            throw { status: 400, message: 'Dữ liệu đã tồn tại trong hệ thống.' };
         }
-            throw { status: 500, message: error.message }
+        // Xử lý lỗi not found
+        if (error.code === 'P2025') {
+            throw { status: 404, message: 'Không tìm thấy người dùng' };
+        }
+        // Lỗi khác
+        throw { status: 500, message: error.message };
     }
 
 }
@@ -129,7 +156,7 @@ const deleteUser = async (id) => {
         });
         
         if (!userWithRelations) {
-            throw { status: 404, message: 'User not found' }
+            throw { status: 404, message: 'Không tìm thấy người dùng' };
         }
         
         if (userWithRelations.DOTTHUPHIs && userWithRelations.DOTTHUPHIs.length > 0) {
@@ -146,14 +173,16 @@ const deleteUser = async (id) => {
 
     }
     catch(error){
+        // Xử lý lỗi not found
         if (error.code === 'P2025') {
-            throw { status: 404, message: 'User not found' }
+            throw { status: 404, message: 'Không tìm thấy người dùng' };
         }
         // Nếu đã có custom error message thì throw nguyên xi
         if (error.status && error.message) {
             throw error;
         }
-        throw { status: 500, message: error.message }
+        // Lỗi khác
+        throw { status: 500, message: error.message };
     }
 };
 

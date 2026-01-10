@@ -97,7 +97,7 @@ export default function ProfileView() {
 
             <div>
               <label className="block text-sm font-medium text-gray-500 mb-1">Vai trò</label>
-              <p className="text-gray-900 font-medium">{user.VAITRO}</p>
+              <p className="text-gray-900 font-medium">{(user.VAITRO === 'admin_1') ? 'Admin' : 'Ban quản lý'}</p>
             </div>
 
             <div>

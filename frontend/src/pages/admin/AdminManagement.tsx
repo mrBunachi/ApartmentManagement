@@ -284,8 +284,8 @@ export default function AdminManagement() {
                   onChange={(e) => setFormData({ ...formData, VAITRO: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 >
-                  <option value="admin_1">admin_1</option>
-                  <option value="admin_2">admin_2</option>
+                  {/* <option value="admin_1">admin</option> */}
+                  <option value="admin_2">ban quản lý</option>
                 </select>
               </div>
 

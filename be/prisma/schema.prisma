@@ -134,6 +134,7 @@ model NHANKHAU {
   MAHOKHAU                        Int?
   HOTEN                           String
   SOCANCUOC                       String?        @unique @db.VarChar(20)
+  SODIENTHOAI                     String?        @db.VarChar(15)
   NGAYSINH                        DateTime?      @db.Date
   GIOITINH                        String?        @db.VarChar(10)
   NOISINH                         String?

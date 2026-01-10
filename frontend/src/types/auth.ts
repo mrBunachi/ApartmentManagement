@@ -1,3 +1,6 @@
+// User roles
+export type UserRole = 'admin_1' | 'admin_2';
+
 // User type từ backend
 export interface User {
   id: number;
@@ -5,7 +8,7 @@ export interface User {
   HOTEN: string;
   SODIENTHOAI: string;
   EMAIL: string | null;
-  VAITRO: string | null;
+  VAITRO: UserRole;
   ACTIVATE: boolean;
 }
 

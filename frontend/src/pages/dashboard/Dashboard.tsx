@@ -78,7 +78,7 @@ export default function Dashboard() {
             </div>
             <div className="flex justify-between items-center p-4 bg-white/60 rounded-lg backdrop-blur-sm">
               <span className="text-sm text-gray-700 font-medium">Vai trò</span>
-              <span className="text-sm font-bold text-purple-700">{user?.VAITRO || 'Admin'}</span>
+              <span className="text-sm font-bold text-purple-700">{(user?.VAITRO === 'admin_1') ? 'Admin' : 'Ban quản lý'}</span>
             </div>
           </div>
         </div>

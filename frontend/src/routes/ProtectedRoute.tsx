@@ -1,12 +1,14 @@
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import type { UserRole } from '../types/auth';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
+  allowedRoles?: UserRole[];
 }
 
-export function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { isAuthenticated, isLoading } = useAuth();
+export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
+  const { user, isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
     return (
@@ -18,6 +20,13 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
+  }
+
+  // Nếu có yêu cầu role cụ thể
+  if (allowedRoles && allowedRoles.length > 0) {
+    if (!user?.VAITRO || !allowedRoles.includes(user.VAITRO)) {
+      return <Navigate to="/unauthorized" replace />;
+    }
   }
 
   return <>{children}</>;

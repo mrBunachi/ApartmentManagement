@@ -5,7 +5,7 @@ import { useAuth } from '../../hooks/useAuth';
 
 export default function Login() {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, user } = useAuth();
   
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
@@ -19,7 +19,7 @@ export default function Login() {
 
     try {
       await login(identifier, password);
-      navigate('/');
+      // Sẽ redirect trong useEffect sau khi user được set
     } catch (err: any) {
       const backendError = err.response?.data?.error || err.response?.data?.message;
       
@@ -33,8 +33,18 @@ export default function Login() {
       }
       
       setError(errorMsg);
-    } finally {
       setLoading(false);
+    }
+  };
+
+  // Redirect dựa trên role sau khi login thành công
+  if (user) {
+    if (user.VAITRO === 'admin_1') {
+      navigate('/admins', { replace: true });
+    } else if (user.VAITRO === 'admin_2') {
+      navigate('/', { replace: true });
+    } else {
+      navigate('/', { replace: true });
     }
   };
 

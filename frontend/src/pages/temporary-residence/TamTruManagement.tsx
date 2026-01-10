@@ -18,7 +18,6 @@ const TamTruManagement = () => {
   // Form state
   const [formData, setFormData] = useState<CreateTamTruRequest>({
     MANHANKHAU: 0,
-    SODIENTHOAINGUOIDANGKY: '',
     TUNGAY: '',
     DENNGAY: '',
     LYDO: '',
@@ -65,7 +64,6 @@ const TamTruManagement = () => {
     setSelectedTamTru(tamTru);
     setFormData({
       MANHANKHAU: tamTru.MANHANKHAU,
-      SODIENTHOAINGUOIDANGKY: tamTru.SODIENTHOAINGUOIDANGKY || '',
       TUNGAY: tamTru.TUNGAY ? new Date(tamTru.TUNGAY).toISOString().split('T')[0] : '',
       DENNGAY: tamTru.DENNGAY ? new Date(tamTru.DENNGAY).toISOString().split('T')[0] : '',
       LYDO: tamTru.LYDO || '',
@@ -119,7 +117,6 @@ const TamTruManagement = () => {
   const resetForm = () => {
     setFormData({
       MANHANKHAU: 0,
-      SODIENTHOAINGUOIDANGKY: '',
       TUNGAY: '',
       DENNGAY: '',
       LYDO: '',
@@ -154,7 +151,6 @@ const TamTruManagement = () => {
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Mã ĐK</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nhân khẩu</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">SĐT người đăng ký</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Từ ngày</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Đến ngày</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Lý do</th>
@@ -175,7 +171,6 @@ const TamTruManagement = () => {
                       tamTru.MANHANKHAU
                     )}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">{tamTru.SODIENTHOAINGUOIDANGKY || '-'}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">{formatDate(tamTru.TUNGAY)}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">{formatDate(tamTru.DENNGAY)}</td>
                   <td className="px-6 py-4 text-sm">{tamTru.LYDO || '-'}</td>
@@ -252,17 +247,6 @@ const TamTruManagement = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">SĐT người đăng ký</label>
-                <input
-                  type="text"
-                  value={formData.SODIENTHOAINGUOIDANGKY}
-                  onChange={(e) => setFormData({ ...formData, SODIENTHOAINGUOIDANGKY: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Số điện thoại"
-                />
-              </div>
-
-              <div>
                 <label className="block text-sm font-medium mb-1">Từ ngày</label>
                 <input
                   type="date"
@@ -322,16 +306,6 @@ const TamTruManagement = () => {
             <h2 className="text-2xl font-bold mb-4">Chỉnh sửa tạm trú</h2>
             
             <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">SĐT người đăng ký</label>
-                <input
-                  type="text"
-                  value={formData.SODIENTHOAINGUOIDANGKY}
-                  onChange={(e) => setFormData({ ...formData, SODIENTHOAINGUOIDANGKY: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
               <div>
                 <label className="block text-sm font-medium mb-1">Từ ngày</label>
                 <input

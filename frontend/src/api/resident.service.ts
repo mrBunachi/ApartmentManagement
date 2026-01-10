@@ -5,6 +5,7 @@ export interface Resident {
   MAHOKHAU?: number | null;
   HOTEN: string;
   SOCANCUOC?: string | null;
+  SODIENTHOAI?: string | null;
   NGAYSINH?: string | null;
   GIOITINH?: string | null;
   NOISINH?: string | null;
@@ -30,6 +31,7 @@ export interface Resident {
 export interface CreateResidentRequest {
   HOTEN: string;
   SOCANCUOC?: string;
+  SODIENTHOAI?: string;
   NGAYSINH?: string;
   GIOITINH?: string;
   NOISINH?: string;

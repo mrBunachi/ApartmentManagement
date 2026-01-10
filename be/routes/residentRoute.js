@@ -6,21 +6,15 @@ const router = express.Router();
 // Yêu cầu tất cả các API trong file này phải xác thực người dùng (đã đăng nhập)
 router.use(verifyUser);
 
+// Chỉ admin_2 mới có quyền quản lý cư dân
+router.use(verifyRole("admin_2"));
+
 // === ĐỊNH NGHĨA CÁC TUYẾN ĐƯỜNG (ROUTES) ===
 
-
 router.post("/", residentController.createResidentController);
-
-
 router.put("/:id", residentController.updateResidentController);
-
-
 router.delete("/:id", residentController.deleteResidentController);
-
-
 router.get("/", residentController.getResidentController);
-
-
 router.get("/:id", residentController.getResidentController);
 
 module.exports = router;

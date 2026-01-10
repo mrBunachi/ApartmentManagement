@@ -22,6 +22,7 @@ export default function ResidentManagement() {
   const [formData, setFormData] = useState<CreateResidentRequest & { MAHOKHAU: number | null }>({
     HOTEN: '',
     SOCANCUOC: '',
+    SODIENTHOAI: '',
     NGAYSINH: '',
     GIOITINH: '',
     NOISINH: '',
@@ -475,6 +476,17 @@ export default function ResidentManagement() {
                     type="text"
                     value={formData.SOCANCUOC}
                     onChange={(e) => setFormData({ ...formData, SOCANCUOC: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Số điện thoại</label>
+                  <input
+                    type="tel"
+                    value={formData.SODIENTHOAI}
+                    onChange={(e) => setFormData({ ...formData, SODIENTHOAI: e.target.value })}
+                    placeholder="Ví dụ: 0123456789"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                   />
                 </div>
