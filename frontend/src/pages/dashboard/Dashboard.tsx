@@ -70,7 +70,7 @@ export default function Dashboard() {
           <div className="space-y-3">
             <div className="flex justify-between items-center p-4 bg-white/60 rounded-lg backdrop-blur-sm">
               <span className="text-sm text-gray-700 font-medium">Phiên bản</span>
-              <span className="text-sm font-bold text-purple-700">v1.0.0</span>
+              <span className="text-sm font-bold text-purple-700">v2.0.0</span>
             </div>
             <div className="flex justify-between items-center p-4 bg-white/60 rounded-lg backdrop-blur-sm">
               <span className="text-sm text-gray-700 font-medium">Người quản lý</span>
