@@ -32,7 +32,15 @@ const getDotThuPhis = async (filters, page, limit) => {
       skip: (page - 1) * limit,
       take: limit,
       where: parsedFilters,
-      include: {
+      select: {
+        MADOTTHU: true,
+        TEN: true,
+        BATBUOC: true,
+        NGAYTAO: true,
+        NGAYBATDAU: true,
+        NGAYKETTHUC: true,
+        MOTA: true,
+        NGUOIQUANLYId: true,
         NGUOIQUANLY: {
           select: { 
             id: true, 
