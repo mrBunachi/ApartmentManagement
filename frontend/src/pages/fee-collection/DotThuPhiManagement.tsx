@@ -6,20 +6,6 @@ import type { DotThuPhi, CreateDotThuPhiRequest, BillItemInput } from '../../api
 import { useAuth } from '../../hooks/useAuth';
 import { toast } from 'react-hot-toast';
 
-// Hàm format date đáng tin cậy hơn toLocaleDateString
-const formatDate = (dateString: string | null | undefined): string => {
-  if (!dateString) return '-';
-  try {
-    const date = new Date(dateString);
-    const day = date.getDate();
-    const month = date.getMonth() + 1;
-    const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
-  } catch {
-    return '-';
-  }
-};
-
 const DotThuPhiManagement = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -361,10 +347,10 @@ const DotThuPhiManagement = () => {
                     {dotThu.NGAYBATDAU && dotThu.NGAYKETTHUC ? (
                       <div>
                         <div className="text-xs">
-                          🟢 {formatDate(dotThu.NGAYBATDAU)}
+                          🟢 {new Date(dotThu.NGAYBATDAU).toLocaleDateString('vi-VN')}
                         </div>
                         <div className="text-xs">
-                          🔴 {formatDate(dotThu.NGAYKETTHUC)}
+                          🔴 {new Date(dotThu.NGAYKETTHUC).toLocaleDateString('vi-VN')}
                         </div>
                       </div>
                     ) : (

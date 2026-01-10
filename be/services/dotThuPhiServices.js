@@ -32,15 +32,7 @@ const getDotThuPhis = async (filters, page, limit) => {
       skip: (page - 1) * limit,
       take: limit,
       where: parsedFilters,
-      select: {
-        MADOTTHU: true,
-        TEN: true,
-        BATBUOC: true,
-        NGAYTAO: true,
-        NGAYBATDAU: true,
-        NGAYKETTHUC: true,
-        MOTA: true,
-        NGUOIQUANLYId: true,
+      include: {
         NGUOIQUANLY: {
           select: { 
             id: true, 
@@ -88,70 +80,26 @@ const getDotThuPhiById = async (id) => {
 
 const createDotThuPhi = async (dotThuPhiData) => {
   try {
-    // Parse dữ liệu trước khi tạo
-    const parsedData = { ...dotThuPhiData };
-    
-    // Parse NGUOIQUANLYId thành số nguyên
-    if (parsedData.NGUOIQUANLYId) {
-      parsedData.NGUOIQUANLYId = parseInt(parsedData.NGUOIQUANLYId, 10);
-    }
-    
-    // Parse BATBUOC thành boolean
-    if ('BATBUOC' in parsedData) {
-      parsedData.BATBUOC = parsedData.BATBUOC === 'true' || parsedData.BATBUOC === true;
-    }
-    
-    // Parse các trường Date
-    if (parsedData.NGAYBATDAU) {
-      parsedData.NGAYBATDAU = new Date(parsedData.NGAYBATDAU);
-    }
-    if (parsedData.NGAYKETTHUC) {
-      parsedData.NGAYKETTHUC = new Date(parsedData.NGAYKETTHUC);
-    }
-    
     const newDotThuPhi = await prisma.dOTTHUPHI.create({
-      data: parsedData,
+      data: dotThuPhiData,
     });
     return newDotThuPhi;
   } catch (error) {
-    console.error('❌ Error creating DotThuPhi:', error);
     throw { status: 500, message: error.message };
   }
 };
 
 const updateDotThuPhi = async (id, dotThuPhiData) => {
   try {
-    // Parse dữ liệu trước khi update
-    const parsedData = { ...dotThuPhiData };
-    
-    // Parse NGUOIQUANLYId thành số nguyên
-    if (parsedData.NGUOIQUANLYId) {
-      parsedData.NGUOIQUANLYId = parseInt(parsedData.NGUOIQUANLYId, 10);
-    }
-    
-    // Parse BATBUOC thành boolean
-    if ('BATBUOC' in parsedData) {
-      parsedData.BATBUOC = parsedData.BATBUOC === 'true' || parsedData.BATBUOC === true;
-    }
-    
-    // Parse các trường Date
-    if (parsedData.NGAYBATDAU) {
-      parsedData.NGAYBATDAU = new Date(parsedData.NGAYBATDAU);
-    }
-    if (parsedData.NGAYKETTHUC) {
-      parsedData.NGAYKETTHUC = new Date(parsedData.NGAYKETTHUC);
-    }
-    
     const updateDotThuPhi = await prisma.dOTTHUPHI.update({
       where: {
         MADOTTHU: parseInt(id),
       },
-      data: parsedData,
+      data: dotThuPhiData,
     });
     return updateDotThuPhi;
   }
   catch (error) {
-    console.error('❌ Error updating DotThuPhi:', error);
     if (error.code === 'P2025') {
       throw { status: 404, message: 'Không tìm thấy đợt thu phí' };
     }
