@@ -41,11 +41,11 @@ const getResidentController = async (req, res) => {
       const result = (await residentServices.getResById(id,null,include)).resident;
 
       if (!result) {
-        return res.status(404).json({ message: "Không tìm thấy nhân khẩu" });
+        return res.status(404).json({ message: "Không tìm thấy cư dân" });
       }
       residents = [result]; // Trả về mảng 1 phần tử cho nhất quán
     } else {
-      // Lấy danh sách nhân khẩu theo filter
+      // Lấy danh sách cư dân theo filter
       const filters = { ...req.query };
       const page = parseInt(filters.page) || 1;
       const limit = parseInt(filters.limit) || 20;
@@ -58,23 +58,23 @@ const getResidentController = async (req, res) => {
       const result = await residentServices.getResidents(filters, page, limit,include);
 
       if (!result || !result.residents || result.count=== 0) {
-        return res.status(404).json({ message: "Không tìm thấy nhân khẩu nào" });
+        return res.status(404).json({ message: "Không tìm thấy cư dân nào" });
       }
       residents = result; // Trả về object { residents: [], count: ... }
     }
 
     return res
       .status(200)
-      .json({ message: "Tìm nhân khẩu thành công", residents });
+      .json({ message: "Tìm cư dân thành công", residents });
   } catch (error) {
     return res
       .status(error.status || 500)
-      .json({ message: "Lỗi tìm thông tin nhân khẩu", error: error.message });
+      .json({ message: "Lỗi tìm thông tin cư dân", error: error.message });
   }
 };
 
 /**
- * Cập nhật thông tin nhân khẩu
+ * Cập nhật thông tin cư dân
  */
 const updateResidentController = async (req, res) => {
   try {
@@ -87,13 +87,13 @@ const updateResidentController = async (req, res) => {
     if (!updatedResident || !updatedResident.updateRes) {
       return res
         .status(404)
-        .json({ message: "Không tìm thấy nhân khẩu để cập nhật" });
+        .json({ message: "Không tìm thấy cư dân để cập nhật" });
     }
 
     res
       .status(200)
       .json({
-        message: "Cập nhật nhân khẩu thành công",
+        message: "Cập nhật cư dân thành công",
         resident: updatedResident.updateRes,
       });
   } catch (error) {
@@ -115,19 +115,19 @@ const deleteResidentController = async (req, res) => {
     const deletedResident = await residentServices.deleteResident(id);
 
     if (!deletedResident || !deletedResident.deleteRes) {
-      return res.status(404).json({ message: "Nhân khẩu không tồn tại" });
+      return res.status(404).json({ message: "Cư dân không tồn tại" });
     }
 
     return res
       .status(200)
       .json({
-        message: "Xóa nhân khẩu thành công",
+        message: "Xóa cư dân thành công",
         resident: deletedResident.deleteRes,
       });
   } catch (error) {
     res
       .status(error.status || 500)
-      .json({ message: "Lỗi xóa nhân khẩu", error: error.message });
+      .json({ message: "Không thể xóa cư dân đang là chủ hộ ", error: error.message });
   }
 };
 

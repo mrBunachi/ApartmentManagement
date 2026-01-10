@@ -364,7 +364,7 @@ const HouseholdManagement = () => {
   return (
     <div className="p-6">
       <div className="mb-6 flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Quản lý Hộ khẩu</h1>
+        <h1 className="text-3xl font-bold">Quản lý Căn hộ</h1>
         <button
           onClick={openCreateModal}
           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
@@ -404,7 +404,15 @@ const HouseholdManagement = () => {
                         <div className="text-gray-500 text-xs">{household.THONGTINCHUHO.SOCANCUOC}</div>
                       </div>
                     ) : (
-                      <span className="text-gray-400 italic">Chưa có</span>
+                      <button
+                        onClick={() => {
+                          setSelectedHousehold(household);
+                          openMemberModal(household);
+                        }}
+                        className="px-3 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700"
+                      >
+                        + Thêm chủ hộ
+                      </button>
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">{household.XEMAY || 0}</td>
@@ -658,7 +666,7 @@ const HouseholdManagement = () => {
                   <option value="">-- Chọn loại căn hộ --</option>
                   {apartmentTypes.map((type) => (
                     <option key={type.LOAICANHO} value={type.LOAICANHO}>
-                      {type.LOAICANHO} - {formatCurrency(type.GIATIENCANHO)}
+                      {type.LOAICANHO}
                     </option>
                   ))}
                 </select>

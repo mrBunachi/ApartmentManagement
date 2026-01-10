@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react';
 import { residentService } from '../../api/resident.service';
 import type { Resident, CreateResidentRequest, UpdateResidentRequest } from '../../api/resident.service';
+import { householdService } from '../../api/household.service';
+import type { Household } from '../../api/household.service';
 
 export default function ResidentManagement() {
   const [residents, setResidents] = useState<Resident[]>([]);
   const [inactiveResidents, setInactiveResidents] = useState<Resident[]>([]);
+  const [households, setHouseholds] = useState<Household[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingInactive, setLoadingInactive] = useState(false);
   const [error, setError] = useState('');
@@ -16,7 +19,7 @@ export default function ResidentManagement() {
   const [inactiveSearchTerm, setInactiveSearchTerm] = useState('');
   const [inactiveSearchType, setInactiveSearchType] = useState<'HOTEN' | 'SOCANCUOC' | 'NGAYSINH'>('HOTEN');
 
-  const [formData, setFormData] = useState<CreateResidentRequest>({
+  const [formData, setFormData] = useState<CreateResidentRequest & { MAHOKHAU: number | null }>({
     HOTEN: '',
     SOCANCUOC: '',
     NGAYSINH: '',
@@ -30,12 +33,23 @@ export default function ResidentManagement() {
     NGHENGHIEP: '',
     QUANHEVOICHUHO: '',
     GHICHU: '',
+    MAHOKHAU: null,
   });
 
   useEffect(() => {
     loadResidents();
     loadInactiveResidents();
+    loadHouseholds();
   }, []);
+
+  const loadHouseholds = async () => {
+    try {
+      const response = await householdService.getAll({ ACTIVATE: true, include: true });
+      setHouseholds(response.apartments.apartments);
+    } catch (err: any) {
+      console.error('❌ Load households error:', err);
+    }
+  };
 
   const loadResidents = async (search?: { [key: string]: string }) => {
     try {
@@ -108,6 +122,7 @@ export default function ResidentManagement() {
       NGHENGHIEP: '',
       QUANHEVOICHUHO: '',
       GHICHU: '',
+      MAHOKHAU: null,
     });
     setShowModal(true);
   };
@@ -129,6 +144,7 @@ export default function ResidentManagement() {
       NGHENGHIEP: resident.NGHENGHIEP || '',
       QUANHEVOICHUHO: resident.QUANHEVOICHUHO || '',
       GHICHU: resident.GHICHU || '',
+      MAHOKHAU: resident.MAHOKHAU || null,
     });
     setShowModal(true);
   };
@@ -137,9 +153,17 @@ export default function ResidentManagement() {
     e.preventDefault();
     setError('');
 
+    // Validate MAHOKHAU is selected
+    if (!formData.MAHOKHAU) {
+      setError('Vui lòng chọn hộ khẩu!');
+      alert('❌ Vui lòng chọn hộ khẩu!');
+      return;
+    }
+
     try {
-      const submitData: CreateResidentRequest = {
+      const submitData: CreateResidentRequest & { MAHOKHAU: number } = {
         HOTEN: formData.HOTEN,
+        MAHOKHAU: formData.MAHOKHAU,
       };
 
       // Only add non-empty optional fields
@@ -158,14 +182,18 @@ export default function ResidentManagement() {
 
       if (modalMode === 'create') {
         await residentService.create(submitData);
+        alert('✅ Thêm nhân khẩu thành công!');
       } else if (selectedResident) {
         await residentService.update(selectedResident.MANHANKHAU, submitData as UpdateResidentRequest);
+        alert('✅ Cập nhật nhân khẩu thành công!');
       }
 
       setShowModal(false);
       loadResidents();
     } catch (err: any) {
-      setError(err.response?.data?.message || err.response?.data?.error || 'Có lỗi xảy ra');
+      const errorMsg = err.response?.data?.message || err.response?.data?.error || 'Có lỗi xảy ra';
+      setError(errorMsg);
+      alert(`❌ ${errorMsg}`);
       console.error('❌ Submit error:', err);
     }
   };
@@ -175,9 +203,14 @@ export default function ResidentManagement() {
 
     try {
       await residentService.delete(resident.MANHANKHAU);
+      alert(`✅ Đã xóa dân cư "${resident.HOTEN}" thành công!`);
+      // Reload cả 2 danh sách (active và inactive)
       loadResidents();
+      loadInactiveResidents();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Không thể xóa dân cư');
+      const errorMsg = err.response?.data?.message || 'Không thể xóa dân cư';
+      setError(errorMsg);
+      alert(`❌ ${errorMsg}`);
       console.error('❌ Delete error:', err);
     }
   };
@@ -255,7 +288,7 @@ export default function ResidentManagement() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Số căn cước</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ngày sinh</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Giới tính</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Hộ khẩu</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nơi ở</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nghề nghiệp</th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Thao tác</th>
               </tr>
@@ -404,6 +437,25 @@ export default function ResidentManagement() {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Hộ khẩu <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    required
+                    value={formData.MAHOKHAU || ''}
+                    onChange={(e) => setFormData({ ...formData, MAHOKHAU: e.target.value ? Number(e.target.value) : null })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  >
+                    <option value="">-- Chọn hộ khẩu --</option>
+                    {households.map((household) => (
+                      <option key={household.MAHOKHAU} value={household.MAHOKHAU}>
+                        {household.MAPHONG} - {household.THONGTINCHUHO?.HOTEN || '(Chưa có chủ hộ)'}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Họ tên <span className="text-red-500">*</span>
